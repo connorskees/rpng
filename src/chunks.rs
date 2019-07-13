@@ -1,3 +1,4 @@
+#[allow(non_camel_case_types)]
 use std::fmt;
 
 #[derive(Default, Debug)]
@@ -88,17 +89,57 @@ pub struct PLTE {
     interlace_method: u8,
 }
 
-enum Unit {
+#[derive(Debug)]
+pub enum Unit {
     Unknown = 0,
-    Meter = 1,
+    Meters = 1,
 }
 
+impl std::default::Default for Unit {
+    fn default() -> Self {
+        Self::Unknown
+    }
+}
+
+impl Unit {
+    pub fn from_u8(value: u8) -> Self {
+        match value {
+            0 => Self::Unknown,
+            1 => Self::Meters,
+            _ => panic!("Unknown value: {}", value),
+        }
+    }
+
+}
+
+#[derive(Default, Debug)]
 pub struct pHYs {
-    x: u8,
-    y: u8,
-    unit: Unit,
+    pub pixels_per_unit_x: u32,
+    pub pixels_per_unit_y: u32,
+    pub unit: Unit,
 }
 
+#[derive(Default, Debug)]
+pub struct iTXt {
+    pub keyword: String,
+    pub compressed: bool, // compression flag: 0=false; 1=true
+    pub compression_method: u8,
+    pub language_tag: String,
+    pub translated_keyword: String,
+    pub text: String,
+}
+
+#[derive(Default, Debug)]
 pub struct AncillaryChunks {
-    phys: Option<pHYs>
+    pub phys: Option<pHYs>,
+    pub itxt: Vec<Option<iTXt>>,
+}
+
+impl AncillaryChunks {
+    pub fn new() -> Self {
+        Self {
+            phys: None,
+            itxt: Vec::new(),
+        }
+    }
 }
