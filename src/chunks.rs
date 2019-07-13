@@ -1,12 +1,13 @@
 #[allow(non_camel_case_types)]
 use std::fmt;
+use crate::common::{ColorType, Unit};
 
 #[derive(Default, Debug)]
 pub struct IHDR {
     pub width: u32,
     pub height: u32,
     pub bit_depth: u8,
-    pub color_type: u8,
+    pub color_type: ColorType,
     pub compression_type: u8,
     pub filter_method: u8,
     pub interlace_method: u8,
@@ -35,34 +36,31 @@ impl IHDR {
         }
 
         match self.color_type {
-            0 => {
+            ColorType::Grayscale => {
                 if ![1, 2, 4, 8, 16].contains(&self.bit_depth) {
                     return Err("invalid bit depth for color type");
                 }
             },
-            2 => {
+            ColorType::RGB => {
                 if ![8, 16].contains(&self.bit_depth) {
                     return Err("invalid bit depth for color type"); 
                 }
             },
-            3 => {
+            ColorType::Indexed => {
                 if ![8, 16].contains(&self.bit_depth) {
                     return Err("invalid bit depth for color type");
                 }
             },
-            4 => {
+            ColorType::GrayscaleAlpha => {
                 if ![8, 16].contains(&self.bit_depth) {
                     return Err("invalid bit depth for color type");
                 }
             },
-            6 => {
+            ColorType::RGBA => {
                 if ![8, 16].contains(&self.bit_depth) {
                     return Err("invalid bit depth for color type");
                 }
             },
-            _ => {
-                return Err("invalid color type");
-            }
         }
 
         if self.compression_type != 0 {
@@ -87,29 +85,6 @@ pub struct PLTE {
     blue: u8,
     filter_method: u8,
     interlace_method: u8,
-}
-
-#[derive(Debug)]
-pub enum Unit {
-    Unknown = 0,
-    Meters = 1,
-}
-
-impl std::default::Default for Unit {
-    fn default() -> Self {
-        Self::Unknown
-    }
-}
-
-impl Unit {
-    pub fn from_u8(value: u8) -> Self {
-        match value {
-            0 => Self::Unknown,
-            1 => Self::Meters,
-            _ => panic!("Unknown value: {}", value),
-        }
-    }
-
 }
 
 #[derive(Default, Debug)]

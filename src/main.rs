@@ -11,7 +11,9 @@ use flate2::bufread::ZlibDecoder;
 // use serde_json;
 
 use chunks::{IHDR, Chunk, pHYs, iTXt, AncillaryChunks};
+use common::{ColorType, Unit};
 
+mod common;
 mod chunks;
 mod filter;
 
@@ -93,7 +95,7 @@ impl PNG {
                     ihdr.bit_depth = u8::from_be_bytes(bit_depth_buffer);
                     
                     f.read(&mut color_type_buffer)?;
-                    ihdr.color_type = u8::from_be_bytes(color_type_buffer);
+                    ihdr.color_type = ColorType::from_u8(u8::from_be_bytes(color_type_buffer));
                     
                     f.read(&mut compression_type_buffer)?;
                     ihdr.compression_type = u8::from_be_bytes(compression_type_buffer);
@@ -136,7 +138,7 @@ impl PNG {
 
                     ancillary_chunks.phys = Some(pHYs {
                         pixels_per_unit_x, pixels_per_unit_y,
-                        unit: chunks::Unit::from_u8(unit)
+                        unit: Unit::from_u8(unit)
                     });
                 },
                 "iTXt" => {
@@ -178,7 +180,6 @@ impl PNG {
                         translated_keyword,
                         text,
                     };
-                    // println!("{:#?}", itxt);
                     ancillary_chunks.itxt.push(Some(itxt));
                 },
                 _ => {
@@ -197,7 +198,6 @@ impl PNG {
         }
 
         ihdr.validate_fields().unwrap();
-        // println!("{}", idat.len());
 
         Ok(PNG {
             ihdr,
@@ -214,7 +214,7 @@ impl PNG {
 
         let mut rows: Vec<Vec<Vec<u8>>> = Vec::new();
         match self.ihdr.color_type {
-            6u8 => {
+            ColorType::RGBA => {
                 let filtered_rows: Vec<&[u8]> = buffer.chunks((1+self.ihdr.width*4) as usize).collect::<Vec<_>>();
                 for (idx, row) in filtered_rows.iter().enumerate() {
                     rows.push(match row[0] {
@@ -238,10 +238,11 @@ impl PNG {
 
 fn main() -> io::Result<()> {
     let png = PNG::from_path(&format!("pngs/{}.png", FILE_NAME))?;
+    // let png = PNG::from_path(r"C:\Users\Connor\Downloads\PngSuite-2017jul19\oi9n2c16.png")?;
     println!("{:?}", png);
-    // let pixels = png.pixels()?;
-    // let mut f = File::create("fogkfkg.json")?;
-    // f.write(serde_json::to_string(&pixels)?.as_bytes())?;
+    let pixels = png.pixels()?;
+    let mut f = File::create("fogkfkg.json")?;
+    f.write(serde_json::to_string(&pixels)?.as_bytes())?;
     // println!("\n{:?}", pixels[0][0]);
     Ok(())
 }
