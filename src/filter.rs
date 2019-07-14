@@ -1,6 +1,27 @@
 use std::vec::Vec;
 use std::cmp::min;
 
+pub enum FilterMethod {
+    None,
+    Sub,
+    Up,
+    Average,
+    Paeth,
+}
+
+impl FilterMethod {
+    pub fn from_u8(val: u8) -> Self {
+        match val {
+            0 => Self::None,
+            1 => Self::Sub,
+            2 => Self::Up,
+            3 => Self::Average,
+            4 => Self::Paeth,
+            _ => panic!(format!("unrecognized filter method: {}", val))
+        }
+    }
+}
+
 pub fn sub(this_row: &[u8], chunk_size: u8, reverse: bool) -> Vec<Vec<u8>> {
     let mut chunks: Vec<Vec<u8>> = this_row.chunks(chunk_size as usize).map(|x| Vec::from(x)).collect();
     for idx1 in 1..chunks.len() { // start at 1 because first pixel (0th) is initial
