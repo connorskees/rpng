@@ -37,11 +37,12 @@ pub fn sub(this_row: &[u8], chunk_size: u8, reverse: bool) -> Vec<Vec<u8>> {
     chunks
 }
 
-pub fn up(this_row: &[u8], row_above: &Vec<Vec<u8>>, chunk_size: u8, reverse: bool) -> Vec<Vec<u8>> {
+pub fn up(this_row: &[u8], row_above: Option<&Vec<Vec<u8>>>, chunk_size: u8, reverse: bool) -> Vec<Vec<u8>> {
     let mut this_row_chunks: Vec<Vec<u8>> = this_row.chunks(chunk_size as usize).map(|x| Vec::from(x)).collect();
+    if row_above == None { return this_row_chunks }
     for idx1 in 0..this_row_chunks.len() {
         for idx2 in 0..this_row_chunks[idx1].len() {
-            let b = row_above[idx1][idx2];
+            let b = row_above.unwrap()[idx1][idx2];
             if reverse {
                 this_row_chunks[idx1][idx2] = this_row_chunks[idx1][idx2].wrapping_add(b);
             } else {
@@ -52,37 +53,41 @@ pub fn up(this_row: &[u8], row_above: &Vec<Vec<u8>>, chunk_size: u8, reverse: bo
     this_row_chunks
 }
 
-pub fn average(this_row: &[u8], row_above: &Vec<Vec<u8>>, chunk_size: u8) -> Vec<Vec<u8>> {
+pub fn average(this_row: &[u8], row_above: Option<&Vec<Vec<u8>>>, chunk_size: u8) -> Vec<Vec<u8>> {
     let mut this_row_chunks: Vec<Vec<u8>> = this_row.chunks(chunk_size as usize).map(|x| Vec::from(x)).collect();
-    for pixel_idx in 1..this_row_chunks.len() { // start at 1 because first pixel (0th) is initial
+    for pixel_idx in 0..this_row_chunks.len() { // start at 1 because first pixel (0th) is initial
         for rgba_idx in 0..this_row_chunks[pixel_idx].len() {
-            let a = this_row_chunks[pixel_idx-1][rgba_idx];
-            let b = row_above[pixel_idx][rgba_idx];
-            this_row_chunks[pixel_idx][rgba_idx] = this_row_chunks[pixel_idx][rgba_idx].wrapping_add((a + b) / 2);
+            let a = if pixel_idx == 0 { 0 } else { this_row_chunks[pixel_idx-1][rgba_idx] };
+            let b = if row_above == None { 0 } else { row_above.unwrap()[pixel_idx][rgba_idx] };
+            this_row_chunks[pixel_idx][rgba_idx] = this_row_chunks[pixel_idx][rgba_idx].wrapping_add(((a as u16 + b as u16) / 2) as u8);
         }
     }
     this_row_chunks
 }
 
-pub fn paeth(this_row: &[u8], row_above: &Vec<Vec<u8>>, chunk_size: u8, reverse: bool) -> Vec<Vec<u8>> {
+pub fn paeth(this_row: &[u8], row_above: Option<&Vec<Vec<u8>>>, chunk_size: u8, reverse: bool) -> Vec<Vec<u8>> {
     let mut this_row_chunks: Vec<Vec<u8>> = this_row.chunks(chunk_size as usize).map(|x| Vec::from(x)).collect();
+    let is_first_row: bool = row_above == None;
+    let placeholder: &Vec<Vec<u8>> = &Vec::new();
+    let above = row_above.unwrap_or(placeholder);
     for pixel_idx in 0..this_row_chunks.len() { // start at 1 because first pixel (0th) is initial
         for rgba_idx in 0..this_row_chunks[pixel_idx].len() {
             let p: u8;
             if pixel_idx == 0 {
                 // the first pixel has no neighbors to the left, so we treat `a` and `c` as 0
                 // paeth_predictor(0, b, 0) = b, so we can just directly set `p = b` 
-                p = row_above[pixel_idx][rgba_idx]; // above
+                p = if is_first_row { 0 } else { above[pixel_idx][rgba_idx] }; // above
             } else {
                 let a = this_row_chunks[pixel_idx-1][rgba_idx]; // left
-                let b = row_above[pixel_idx][rgba_idx]; // above
-                let c = row_above[pixel_idx-1][rgba_idx]; // above left
+                let b = if is_first_row { 0 } else { above[pixel_idx][rgba_idx] }; // above
+                let c = if is_first_row { 0 } else { above[pixel_idx-1][rgba_idx] }; // above left
                 p = paeth_predictor(a as i16, b as i16, c as i16);
             }
             if reverse {
                 this_row_chunks[pixel_idx][rgba_idx] = this_row_chunks[pixel_idx][rgba_idx].wrapping_add(p);
+            } else {
+                this_row_chunks[pixel_idx][rgba_idx] = this_row_chunks[pixel_idx][rgba_idx].wrapping_sub(p);
             }
-            this_row_chunks[pixel_idx][rgba_idx] = this_row_chunks[pixel_idx][rgba_idx].wrapping_sub(p);
         }
     }
     this_row_chunks

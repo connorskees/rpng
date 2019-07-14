@@ -12,6 +12,7 @@ use flate2::bufread::ZlibDecoder;
 
 use chunks::{IHDR, PLTE, Chunk, pHYs, iTXt, gAMA, PaletteEntries, AncillaryChunks};
 use common::{ColorType, Unit};
+use filter::{FilterMethod};
 
 mod common;
 mod chunks;
@@ -235,24 +236,33 @@ impl PNG {
         zlib.read_to_end(&mut buffer)?;
 
         let mut rows: Vec<Vec<Vec<u8>>> = Vec::new();
-        match self.ihdr.color_type {
-            ColorType::RGBA => {
-                let filtered_rows: Vec<&[u8]> = buffer.chunks((1+self.ihdr.width*4) as usize).collect::<Vec<_>>();
-                for (idx, row) in filtered_rows.iter().enumerate() {
-                    rows.push(match row[0] {
-                        0 => row.chunks(4).map(|x| Vec::from(x)).collect(),
-                        1 => filter::sub(&row[1..], 4, true),
-                        2 => filter::up(&row[1..], &rows[idx-1], 4, true),
-                        3 => filter::average(&row[1..], &rows[idx-1], 4),
-                        4 => filter::paeth(&row[1..], &rows[idx-1], 4, true),
-                        _ => row.chunks(4).map(|x| Vec::from(x)).collect(),
-                    });
-                }
-                // println!("{:?}", rows);
-            }
-            _ => {
-                panic!("invalid color type");
-            }
+        let chunk_length: u8 = match self.ihdr.color_type {
+            ColorType::Grayscale => 1,
+            ColorType::RGB => 3,
+            ColorType::Indexed => 1,
+            ColorType:: GrayscaleAlpha => 2,
+            ColorType::RGBA => 4,
+        };
+        if self.ihdr.bit_depth < 8 {
+
+        }
+        println!("raw buf len {:?}", buffer.len());
+        let row_length = 1 + (((self.ihdr.bit_depth as f32/8f32) * self.ihdr.width as f32).ceil() as u32 * (chunk_length as u32));
+        println!("row length {}", row_length);
+        let filtered_rows: Vec<&[u8]> = buffer.chunks(row_length as usize).collect::<Vec<_>>();
+        // println!("buffer {:?}", filtered_rows);
+        println!("num of rows {}", filtered_rows.len());
+        // println!("{:?}", filtered_rows.len());
+        for (idx, row) in filtered_rows.iter().enumerate() {
+            // let row_above: Option<&Vec<Vec<u8>>> = if idx == 0 { None } else { Some(&rows[idx-1]) };
+            // println!("{:?}", row);
+            rows.push(match FilterMethod::from_u8(row[0]) {
+                FilterMethod::None => row[1..].chunks(chunk_length as usize).map(|x| Vec::from(x)).collect(),
+                FilterMethod::Sub => filter::sub(&row[1..], chunk_length, true),
+                FilterMethod::Up => filter::up(&row[1..], if idx == 0 { None } else { Some(&rows[idx-1]) }, chunk_length, true),
+                FilterMethod::Average => filter::average(&row[1..], if idx == 0 { None } else { Some(&rows[idx-1]) }, chunk_length),
+                FilterMethod::Paeth => filter::paeth(&row[1..], if idx == 0 { None } else { Some(&rows[idx-1]) }, chunk_length, true),
+            });
         }
         Ok(rows)
     }
