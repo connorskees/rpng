@@ -1,10 +1,10 @@
 #[derive(Debug)]
 pub enum ColorType {
     Grayscale = 0,
-    RGB = 2,
+    RGB = 2, // Truecolor
     Indexed = 3,
     GrayscaleAlpha = 4,
-    RGBA = 6,
+    RGBA = 6, // TruecolorAlpha
 }
 
 impl std::default::Default for ColorType {

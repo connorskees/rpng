@@ -47,7 +47,7 @@ impl IHDR {
                 }
             },
             ColorType::Indexed => {
-                if ![8, 16].contains(&self.bit_depth) {
+                if ![1, 2, 4, 8].contains(&self.bit_depth) {
                     return Err("invalid bit depth for color type");
                 }
             },
@@ -124,9 +124,15 @@ pub struct iTXt {
 }
 
 #[derive(Default, Debug)]
+pub struct gAMA {
+    pub gamma: u32
+}
+
+#[derive(Default, Debug)]
 pub struct AncillaryChunks {
     pub phys: Option<pHYs>,
     pub itxt: Vec<Option<iTXt>>,
+    pub gama: Option<gAMA>,
 }
 
 impl AncillaryChunks {
@@ -134,6 +140,7 @@ impl AncillaryChunks {
         Self {
             phys: None,
             itxt: Vec::new(),
+            gama: None,
         }
     }
 }

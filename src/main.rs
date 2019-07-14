@@ -10,7 +10,7 @@ use std::vec::Vec;
 use flate2::bufread::ZlibDecoder;
 // use serde_json;
 
-use chunks::{IHDR, Chunk, pHYs, iTXt, AncillaryChunks};
+use chunks::{IHDR, PLTE, Chunk, pHYs, iTXt, gAMA, PaletteEntries, AncillaryChunks};
 use common::{ColorType, Unit};
 
 mod common;
@@ -65,8 +65,6 @@ impl PNG {
             f.read(&mut type_buffer)?;
             let chunk_type = str::from_utf8(&type_buffer).unwrap();
             println!("{:#?}", chunk_type);
-
-
 
             match chunk_type {
                 // Critical
@@ -196,6 +194,15 @@ impl PNG {
                     };
                     ancillary_chunks.itxt.push(Some(itxt));
                 },
+                "gAMA" => {
+                    if length != 4 {
+                        panic!("invalid gAMA length");
+                    }
+                    let mut gamma_buffer = [0; 4];
+                    f.read(&mut gamma_buffer)?;
+                    let gamma = u32::from_be_bytes(gamma_buffer);
+                    ancillary_chunks.gama = Some(gAMA { gamma });
+                }
                 _ => {
                     let mut v: Vec<u8> = vec!(0; length as usize);
                     f.read(&mut v)?;
@@ -218,6 +225,7 @@ impl PNG {
             idat,
             unrecognized_chunks,
             ancillary_chunks,
+            plte
         })
     }
 
@@ -260,18 +268,3 @@ fn main() -> io::Result<()> {
     // println!("\n{:?}", pixels[0][0]);
     Ok(())
 }
-// 78 9C
-// ---CMF---  ---FLG---
-// 0111.1000  1001.1100
-
-// 01 ff 00 00 ff 00 00 00 00 00 00 00 00 01 00 00
-// 00 00 00 00 00 00 00 00 00 00 00 00 00 02 00 00
-// 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-// 00 00 00 00 00 00 00 00 00 00 02 00 00 00 00 00
-// 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-// 00 00 00 00 00 00 00 01 00 00 ff ff 00 00 00 00
-// 00 00 00 00 00 ff 01 00 00 00 00 00 00 00 00 00
-// 00 00 00 00 02 00 00 00 00 00 00 00 00 00 00 00
-// 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-// 00 02 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-// 00 00 00 00 00 00 00 00 00 00 00 00 00 00
