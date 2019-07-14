@@ -79,12 +79,31 @@ impl IHDR {
 }
 
 #[derive(Default, Debug)]
+pub struct PaletteEntries {
+    pub red: u8,
+    pub green: u8,
+    pub blue: u8,
+}
+
+impl PaletteEntries {
+    pub fn from_u8(val: &[u8]) -> Self {
+        Self {
+            red: val[0],
+            green: val[1],
+            blue: val[2],
+        }
+    }
+}
+
+#[derive(Default)]
 pub struct PLTE {
-    red: u8,
-    green: u8,
-    blue: u8,
-    filter_method: u8,
-    interlace_method: u8,
+    pub entries: Vec<PaletteEntries>
+}
+
+impl fmt::Debug for PLTE {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "PLTE {{ {} entries }}", self.entries.len())
+    }
 }
 
 #[derive(Default, Debug)]

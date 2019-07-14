@@ -21,6 +21,7 @@ const FILE_NAME: &str = "redrect";
 
 struct PNG {
     ihdr: IHDR,
+    plte: Option<PLTE>,
     idat: Vec<u8>,
     unrecognized_chunks: Vec<Chunk>,
     ancillary_chunks: AncillaryChunks,
@@ -30,8 +31,8 @@ impl fmt::Debug for PNG {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f, 
-            "PNG {{\n    ihdr: {:?}\n    idat: {} bytes (compressed)\n    unrecognized_chunks: {:#?}\n    ancillary_chunks: {:#?}}}",
-            self.ihdr, self.idat.len(), self.unrecognized_chunks, self.ancillary_chunks
+            "PNG {{\n    ihdr: {:?}\n    plte: {:?}\n    idat: {} bytes (compressed)\n    unrecognized_chunks: {:#?}\n    ancillary_chunks: {:#?}}}",
+            self.ihdr, self.plte.as_ref(), self.idat.len(), self.unrecognized_chunks, self.ancillary_chunks
         )
     }
 }
@@ -48,6 +49,7 @@ impl PNG {
         let mut unrecognized_chunks: Vec<Chunk> = Vec::new();
         let mut idat: Vec<u8> = Vec::new();
         let mut ancillary_chunks: AncillaryChunks = AncillaryChunks::new();
+        let mut plte: Option<PLTE> = None;
 
         f.read(&mut header)?;
         if header != [137u8, 80, 78, 71, 13, 10, 26, 10] {
@@ -107,9 +109,21 @@ impl PNG {
                     ihdr.interlace_method = u8::from_be_bytes(interlace_method_buffer);
                 },
                 "PLTE" => {
-                    // if length % 3 != 0 {
-                    //     panic!("PLTE chunk length must be divisible by 3")
-                    // }
+                    if length % 3 != 0 {
+                        panic!("PLTE chunk length must be divisible by 3")
+                    }
+                    match ihdr.color_type {
+                        ColorType::Indexed | ColorType::RGB | ColorType::RGBA => {},
+                        ColorType::Grayscale | ColorType:: GrayscaleAlpha => panic!("unexpected PLTE chunk")   
+                    }
+                    let mut entries_buffer: Vec<u8> = vec!(0; length as usize);
+                    f.read(&mut entries_buffer)?;
+                    let entries_: Vec<&[u8]> = entries_buffer.chunks(3).collect();
+                    let entries: Vec<PaletteEntries> =  entries_.iter().map(|x| PaletteEntries::from_u8(x)).collect();
+
+                    plte = Some(PLTE {
+                        entries
+                    });
                     // println!("fjghjfhjfh")
                 },
                 "IDAT" => {
