@@ -85,6 +85,16 @@ impl ColorType {
             _ => Err(MetadataError::UnrecognizedColorType{ color_type })
         }
     }
+
+    pub fn channels(&self) -> u8 {
+        match self {
+            Self::Grayscale => 1,
+            Self::RGB => 3,
+            Self::Indexed => 1,
+            Self::GrayscaleAlpha => 2,
+            Self::RGBA => 4,
+        }
+    }
 }
 
 #[derive(Debug)]

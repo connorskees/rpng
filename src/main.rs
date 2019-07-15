@@ -63,13 +63,7 @@ impl PNG {
         }
 
         let mut rows: Bitmap = Vec::new();
-        let chunk_length: u8 = match self.ihdr.color_type {
-            ColorType::Grayscale => 1,
-            ColorType::RGB => 3,
-            ColorType::Indexed => 1,
-            ColorType:: GrayscaleAlpha => 2,
-            ColorType::RGBA => 4,
-        };
+        let chunk_length: u8 = self.ihdr.color_type.channels();
         if self.ihdr.bit_depth.as_u8() < 8 {
 
         }
