@@ -86,6 +86,10 @@ impl PNG {
         // println!("rows {:?}", rows);
         Ok(rows)
     }
+
+    pub fn dimensions(&self) -> [u32; 2] {
+        [self.ihdr.width, self.ihdr.height]
+    }
 }
 
 fn main() -> io::Result<()> {
