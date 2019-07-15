@@ -1,8 +1,8 @@
-#[allow(non_camel_case_types)]
 use std::fmt;
 use crate::common::{BitDepth, ColorType, CompressionType, Interlacing, Unit};
 use crate::filter::{FilterMethod};
 
+/// The IHDR chunk contains important metadata for reading the image
 #[derive(Default, Debug)]
 pub struct IHDR {
     pub width: u32,
@@ -87,6 +87,7 @@ impl PaletteEntry {
     }
 }
 
+/// The PLTE chunk contains a list of palette entries
 #[derive(Default)]
 pub struct PLTE {
     pub entries: Vec<PaletteEntry>
@@ -98,14 +99,18 @@ impl fmt::Debug for PLTE {
     }
 }
 
+/// The pHYs chunk contains information about the aspect ratio
 #[derive(Default, Debug)]
+#[allow(non_camel_case_types)]
 pub struct pHYs {
     pub pixels_per_unit_x: u32,
     pub pixels_per_unit_y: u32,
     pub unit: Unit,
 }
 
+/// The iTXt chunk contains utf8 text
 #[derive(Default, Debug)]
+#[allow(non_camel_case_types)]
 pub struct iTXt {
     pub keyword: String,
     pub compressed: bool, // compression flag: 0=false; 1=true
@@ -116,11 +121,13 @@ pub struct iTXt {
 }
 
 #[derive(Default, Debug)]
+#[allow(non_camel_case_types)]
 pub struct gAMA {
     pub gamma: u32
 }
 
 #[derive(Default, Debug)]
+#[allow(non_camel_case_types)]
 pub struct cHRM {
     pub white_point_x: u32,
     pub white_point_y: u32,
@@ -133,6 +140,7 @@ pub struct cHRM {
 }
 
 #[derive(Default, Debug)]
+#[allow(non_camel_case_types)]
 pub struct iCCP {
     pub profile_name: String,
     pub compression_method: CompressionType,
