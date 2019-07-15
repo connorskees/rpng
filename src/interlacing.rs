@@ -1,4 +1,5 @@
 #[derive(Debug)]
+#[repr(u8)]
 pub enum Interlacing {
     None = 0,
     Adam7 = 1,
@@ -28,7 +29,7 @@ impl Interlacing {
         */
 
         for pass in 1..=7 {
-            
+
         }
 
         // int starting_row[7]  = { 0, 0, 4, 0, 2, 0, 1 };

@@ -40,6 +40,7 @@ impl std::default::Default for BitDepth {
 }
 
 #[derive(Debug)]
+#[repr(u8)]
 pub enum CompressionType {
     Deflate = 0,
 }
@@ -60,6 +61,7 @@ impl std::default::Default for CompressionType {
 }
 
 #[derive(Debug)]
+#[repr(u8)]
 pub enum ColorType {
     Grayscale = 0,
     RGB = 2, // Truecolor
@@ -98,6 +100,7 @@ impl ColorType {
 }
 
 #[derive(Debug)]
+#[repr(u8)]
 pub enum Unit {
     Unknown = 0,
     Meters = 1,

@@ -3,6 +3,7 @@ use std::cmp::min;
 use crate::errors::FilterError;
 
 #[derive(Debug)]
+#[repr(u8)]
 pub enum FilterType {
     /// No filter is applied
     None = 0,
@@ -32,6 +33,7 @@ impl std::default::Default for FilterType {
 }
 
 #[derive(Debug)]
+#[repr(u8)]
 pub enum FilterMethod {
     /// The default filter method. This exposes 5 filter algorithms: none, sub, up, average, and paeth
     Adaptive = 0,
