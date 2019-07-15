@@ -121,10 +121,23 @@ pub struct gAMA {
 }
 
 #[derive(Default, Debug)]
+pub struct cHRM {
+    white_point_x: u32,
+    white_point_y: u32,
+    red_x: u32,
+    red_y: u32,
+    green_x: u32,
+    green_y: u32,
+    blue_x: u32,
+    blue_y: u32,
+}
+
+#[derive(Default, Debug)]
 pub struct AncillaryChunks {
     pub phys: Option<pHYs>,
     pub itxt: Vec<Option<iTXt>>,
     pub gama: Option<gAMA>,
+    pub chrm: Option<cHRM>,
 }
 
 impl AncillaryChunks {
@@ -133,6 +146,7 @@ impl AncillaryChunks {
             phys: None,
             itxt: Vec::new(),
             gama: None,
+            chrm: None,
         }
     }
 }
