@@ -93,25 +93,27 @@ impl PNG {
                     }
 
                     f.read_exact(&mut width_buffer)?;
-                    ihdr.width = u32::from_be_bytes(width_buffer);
+                    let width = u32::from_be_bytes(width_buffer);
                     
                     f.read_exact(&mut height_buffer)?;
-                    ihdr.height = u32::from_be_bytes(height_buffer);
+                    let height = u32::from_be_bytes(height_buffer);
                     
                     f.read_exact(&mut bit_depth_buffer)?;
-                    ihdr.bit_depth = BitDepth::from_u8(u8::from_be_bytes(bit_depth_buffer));
+                    let bit_depth = BitDepth::from_u8(u8::from_be_bytes(bit_depth_buffer))?;
                     
                     f.read_exact(&mut color_type_buffer)?;
-                    ihdr.color_type = ColorType::from_u8(u8::from_be_bytes(color_type_buffer));
+                    let color_type = ColorType::from_u8(u8::from_be_bytes(color_type_buffer))?;
                     
                     f.read_exact(&mut compression_type_buffer)?;
-                    ihdr.compression_type = CompressionType::from_u8(u8::from_be_bytes(compression_type_buffer));
+                    let compression_type = CompressionType::from_u8(u8::from_be_bytes(compression_type_buffer))?;
                     
                     f.read_exact(&mut filter_method_buffer)?;
-                    ihdr.filter_method = FilterMethod::from_u8(u8::from_be_bytes(filter_method_buffer));
+                    let filter_method = FilterMethod::from_u8(u8::from_be_bytes(filter_method_buffer))?;
                     
                     f.read_exact(&mut interlace_method_buffer)?;
-                    ihdr.interlace_method = Interlacing::from_u8(u8::from_be_bytes(interlace_method_buffer));
+                    let interlace_method = Interlacing::from_u8(u8::from_be_bytes(interlace_method_buffer));
+
+                    ihdr = IHDR::new(width, height, bit_depth, color_type, compression_type, filter_method, interlace_method).unwrap();
                 },
                 "PLTE" => {
                     if length % 3 != 0 {

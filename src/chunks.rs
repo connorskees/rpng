@@ -15,43 +15,54 @@ pub struct IHDR {
 }
 
 impl IHDR {
-    pub fn validate_fields(&self) -> Result<(), &'static str> {
-        if !(0 < self.width && self.width < 2u32.pow(31)) {
+    pub fn new(
+            width: u32,
+            height: u32, 
+            bit_depth: BitDepth, 
+            color_type: ColorType, 
+            compression_type: CompressionType, 
+            filter_method: FilterMethod, 
+            interlace_method: Interlacing
+        ) -> Result<Self, &'static str> {
+
+        if !(0 < width && width < 2u32.pow(31)) {
             return Err("width not between 0 and 2^31");
         }
         
-        if !(0 < self.height && self.height < 2u32.pow(31)) {
+        if !(0 < height && height < 2u32.pow(31)) {
             return Err("height not between 0 and 2^31");
         }
 
-        match self.color_type {
+        match color_type {
             ColorType::Grayscale => {
-                if ![BitDepth::One, BitDepth::Two, BitDepth::Four, BitDepth::Eight, BitDepth::Sixteen].contains(&self.bit_depth) {
+                if ![BitDepth::One, BitDepth::Two, BitDepth::Four, BitDepth::Eight, BitDepth::Sixteen].contains(&bit_depth) {
                     return Err("invalid bit depth for color type");
                 }
             },
             ColorType::RGB => {
-                if ![BitDepth::Eight, BitDepth::Sixteen].contains(&self.bit_depth) {
+                if ![BitDepth::Eight, BitDepth::Sixteen].contains(&bit_depth) {
                     return Err("invalid bit depth for color type"); 
                 }
             },
             ColorType::Indexed => {
-                if ![BitDepth::One, BitDepth::Two, BitDepth::Four, BitDepth::Eight].contains(&self.bit_depth) {
+                if ![BitDepth::One, BitDepth::Two, BitDepth::Four, BitDepth::Eight].contains(&bit_depth) {
                     return Err("invalid bit depth for color type");
                 }
             },
             ColorType::GrayscaleAlpha => {
-                if ![BitDepth::Eight, BitDepth::Sixteen].contains(&self.bit_depth) {
+                if ![BitDepth::Eight, BitDepth::Sixteen].contains(&bit_depth) {
                     return Err("invalid bit depth for color type");
                 }
             },
             ColorType::RGBA => {
-                if ![BitDepth::Eight, BitDepth::Sixteen].contains(&self.bit_depth) {
+                if ![BitDepth::Eight, BitDepth::Sixteen].contains(&bit_depth) {
                     return Err("invalid bit depth for color type");
                 }
             },
         }
-    Ok(())
+    Ok(Self {
+        width, height, bit_depth, color_type, compression_type, filter_method, interlace_method
+    })
     }
 }
 
