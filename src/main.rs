@@ -251,7 +251,24 @@ impl PNG {
                     });
                 },
                 "iCCP" => {
+                    let mut profile_name_buffer: Vec<u8> = Vec::new();
+                    let mut compression_method_buffer = [0];
 
+                    let profile_name_len = f.read_until(b'\0', &mut profile_name_buffer)?;
+                    f.read_exact(&mut compression_method_buffer)?;
+
+                    let remaining_length = length
+                                            - (profile_name_len as u32)
+                                            - 1;
+                    
+                    let mut compressed_profile: Vec<u8> = vec!(0; remaining_length as usize);
+                    f.read_exact(&mut compressed_profile)?;
+
+                    let profile_name = String::from_utf8(profile_name_buffer).unwrap();
+                    let compression_method = CompressionType::from_u8(u8::from_be_bytes(compression_method_buffer));
+                    ancillary_chunks.iccp = Some(iCCP {
+                        profile_name, compression_method, compressed_profile,
+                    });
                 }
                 _ => {
                     let mut v: Vec<u8> = vec!(0; length as usize);
