@@ -12,13 +12,13 @@ use std::vec::Vec;
 use flate2::bufread::ZlibDecoder;
 // use serde_json;
 
-use chunks::{IHDR, PLTE, UnrecognizedChunk, pHYs, iTXt, gAMA, cHRM, PaletteEntry, AncillaryChunks};
-use common::{BitDepth, ColorType, CompressionType, Unit, Interlacing};
-use filter::{FilterMethod, FilterType};
+use chunks::{IHDR, PLTE, UnrecognizedChunk, pHYs, iTXt, gAMA, cHRM, iCCP, PaletteEntry, AncillaryChunks};
+pub use common::{BitDepth, ColorType, CompressionType, Unit, Interlacing};
+pub use filter::{FilterMethod, FilterType};
 
-pub mod common;
+mod common;
 pub mod chunks;
-pub mod filter;
+mod filter;
 
 const FILE_NAME: &str = "redrect";
 
