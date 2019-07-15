@@ -109,24 +109,5 @@ impl Unit {
     }
 }
 
-#[derive(Debug)]
-pub enum Interlacing {
-    None = 0,
-    Adam7 = 1,
-}
-
-impl std::default::Default for Interlacing {
-    fn default() -> Self {
-        Self::None
-    }
-}
-
-impl Interlacing {
-    pub fn from_u8(value: u8) -> Self {
-        match value {
-            0 => Self::None,
-            1 => Self::Adam7,
-            _ => panic!("Unknown value: {}", value),
-        }
     }
 }

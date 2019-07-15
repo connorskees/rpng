@@ -1,6 +1,7 @@
 use std::fmt;
-use crate::common::{BitDepth, ColorType, CompressionType, Interlacing, Unit};
+use crate::common::{BitDepth, ColorType, CompressionType, Unit};
 use crate::filter::{FilterMethod};
+use crate::interlacing::{Interlacing};
 
 /// The IHDR chunk contains important metadata for reading the image
 #[derive(Default, Debug)]

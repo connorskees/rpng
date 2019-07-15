@@ -15,6 +15,7 @@ use flate2::bufread::ZlibDecoder;
 use chunks::{IHDR, PLTE, UnrecognizedChunk, AncillaryChunks};
 pub use common::{BitDepth, ColorType, CompressionType, Unit};
 pub use filter::{FilterMethod, FilterType};
+pub use interlacing::{Interlacing};
 pub use errors::PNGDecodingError;
 pub use decoder::PNGDecoder;
 
@@ -23,6 +24,7 @@ mod decoder;
 mod errors;
 pub mod chunks;
 mod filter;
+mod interlacing;
 
 type Bitmap = Vec<Vec<Vec<u8>>>;
 
