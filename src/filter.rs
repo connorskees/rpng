@@ -52,7 +52,7 @@ impl std::default::Default for FilterMethod {
 }
 
 pub fn sub(this_row: &[u8], chunk_size: u8, reverse: bool) -> Vec<Vec<u8>> {
-    let mut chunks: Vec<Vec<u8>> = this_row.chunks(chunk_size as usize).map(|x| Vec::from(x)).collect();
+    let mut chunks: Vec<Vec<u8>> = this_row.chunks(chunk_size as usize).map(Vec::from).collect();
     for idx1 in 1..chunks.len() { // start at 1 because first pixel (0th) is initial
         for idx2 in 0..chunks[idx1].len() {
             let a = chunks[idx1-1][idx2];
@@ -67,7 +67,7 @@ pub fn sub(this_row: &[u8], chunk_size: u8, reverse: bool) -> Vec<Vec<u8>> {
 }
 
 pub fn up(this_row: &[u8], row_above: Option<&Vec<Vec<u8>>>, chunk_size: u8, reverse: bool) -> Vec<Vec<u8>> {
-    let mut this_row_chunks: Vec<Vec<u8>> = this_row.chunks(chunk_size as usize).map(|x| Vec::from(x)).collect();
+    let mut this_row_chunks: Vec<Vec<u8>> = this_row.chunks(chunk_size as usize).map(Vec::from).collect();
     if row_above == None { return this_row_chunks }
     for idx1 in 0..this_row_chunks.len() {
         for idx2 in 0..this_row_chunks[idx1].len() {
@@ -83,35 +83,34 @@ pub fn up(this_row: &[u8], row_above: Option<&Vec<Vec<u8>>>, chunk_size: u8, rev
 }
 
 pub fn average(this_row: &[u8], row_above: Option<&Vec<Vec<u8>>>, chunk_size: u8) -> Vec<Vec<u8>> {
-    let mut this_row_chunks: Vec<Vec<u8>> = this_row.chunks(chunk_size as usize).map(|x| Vec::from(x)).collect();
+    let mut this_row_chunks: Vec<Vec<u8>> = this_row.chunks(chunk_size as usize).map(Vec::from).collect();
     for pixel_idx in 0..this_row_chunks.len() { // start at 1 because first pixel (0th) is initial
         for rgba_idx in 0..this_row_chunks[pixel_idx].len() {
             let a = if pixel_idx == 0 { 0 } else { this_row_chunks[pixel_idx-1][rgba_idx] };
             let b = if row_above == None { 0 } else { row_above.unwrap()[pixel_idx][rgba_idx] };
-            this_row_chunks[pixel_idx][rgba_idx] = this_row_chunks[pixel_idx][rgba_idx].wrapping_add(((a as u16 + b as u16) / 2) as u8);
+            this_row_chunks[pixel_idx][rgba_idx] = this_row_chunks[pixel_idx][rgba_idx].wrapping_add(((u16::from(a) + u16::from(b)) / 2) as u8);
         }
     }
     this_row_chunks
 }
 
 pub fn paeth(this_row: &[u8], row_above: Option<&Vec<Vec<u8>>>, chunk_size: u8, reverse: bool) -> Vec<Vec<u8>> {
-    let mut this_row_chunks: Vec<Vec<u8>> = this_row.chunks(chunk_size as usize).map(|x| Vec::from(x)).collect();
+    let mut this_row_chunks: Vec<Vec<u8>> = this_row.chunks(chunk_size as usize).map(Vec::from).collect();
     let is_first_row: bool = row_above == None;
     let placeholder: &Vec<Vec<u8>> = &Vec::new();
     let above = row_above.unwrap_or(placeholder);
     for pixel_idx in 0..this_row_chunks.len() { // start at 1 because first pixel (0th) is initial
         for rgba_idx in 0..this_row_chunks[pixel_idx].len() {
-            let p: u8;
-            if pixel_idx == 0 {
+            let p: u8 = if pixel_idx == 0 {
                 // the first pixel has no neighbors to the left, so we treat `a` and `c` as 0
                 // paeth_predictor(0, b, 0) = b, so we can just directly set `p = b` 
-                p = if is_first_row { 0 } else { above[pixel_idx][rgba_idx] }; // above
+                if is_first_row { 0 } else { above[pixel_idx][rgba_idx] } // above
             } else {
                 let a = this_row_chunks[pixel_idx-1][rgba_idx]; // left
                 let b = if is_first_row { 0 } else { above[pixel_idx][rgba_idx] }; // above
                 let c = if is_first_row { 0 } else { above[pixel_idx-1][rgba_idx] }; // above left
-                p = paeth_predictor(a as i16, b as i16, c as i16);
-            }
+                paeth_predictor(i16::from(a), i16::from(b), i16::from(c))
+            };
             if reverse {
                 this_row_chunks[pixel_idx][rgba_idx] = this_row_chunks[pixel_idx][rgba_idx].wrapping_add(p);
             } else {

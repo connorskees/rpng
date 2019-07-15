@@ -109,7 +109,7 @@ pub struct pHYs {
 pub struct iTXt {
     pub keyword: String,
     pub compressed: bool, // compression flag: 0=false; 1=true
-    pub compression_method: u8,
+    pub compression_method: Option<CompressionType>,
     pub language_tag: String,
     pub translated_keyword: String,
     pub text: String,

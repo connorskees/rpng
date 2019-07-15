@@ -156,7 +156,7 @@ impl PNG {
                     });
                 },
                 "iTXt" => {
-                    let mut keyword_buffer = Vec::new();
+                    let mut keyword_buffer: Vec<u8> = Vec::new();
                     let mut compressed_buffer = [0];
                     let mut compression_method_buffer = [0];
                     let mut language_tag_buffer = Vec::new();
@@ -179,7 +179,7 @@ impl PNG {
 
                     let keyword = String::from_utf8(keyword_buffer).unwrap();
                     let compressed = u8::from_be_bytes(compressed_buffer) != 0;
-                    let compression_method = u8::from_be_bytes(compression_method_buffer);
+                    let compression_method = if compressed { Some(CompressionType::from_u8(u8::from_be_bytes(compression_method_buffer))) } else { None };
                     let language_tag = String::from_utf8(language_tag_buffer).unwrap();
                     let translated_keyword = String::from_utf8(translated_keyword_buffer).unwrap();
                     let text = String::from_utf8(text_buffer).unwrap();
@@ -305,16 +305,15 @@ impl PNG {
 
         }
         println!("raw buf len {:?}", buffer.len());
-        let row_length = 1 + (((self.ihdr.bit_depth.as_u8() as f32/8f32) * self.ihdr.width as f32).ceil() as u32 * (chunk_length as u32));
+        let row_length = 1 + (((f32::from(self.ihdr.bit_depth.as_u8()) /8f32) * self.ihdr.width as f32).ceil() as u32 * (u32::from(chunk_length)));
         println!("row length {}", row_length);
         let filtered_rows: Vec<&[u8]> = buffer.chunks(row_length as usize).collect::<Vec<&[u8]>>();
         // println!("buffer {:?}", filtered_rows);
         println!("num of rows {}", filtered_rows.len());
-        // println!("{:?}", filtered_rows.len());
         for (idx, row) in filtered_rows.iter().enumerate() {
-            // println!("{:?}", row);
+            println!("{:?}", row);
             rows.push(match FilterType::from_u8(row[0]) {
-                FilterType::None => row[1..].chunks(chunk_length as usize).map(|x| Vec::from(x)).collect(),
+                FilterType::None => row[1..].chunks(chunk_length as usize).map(Vec::from).collect(),
                 FilterType::Sub => filter::sub(&row[1..], chunk_length, true),
                 FilterType::Up => filter::up(&row[1..], if idx == 0 { None } else { Some(&rows[idx-1]) }, chunk_length, true),
                 FilterType::Average => filter::average(&row[1..], if idx == 0 { None } else { Some(&rows[idx-1]) }, chunk_length),
