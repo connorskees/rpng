@@ -122,5 +122,10 @@ impl Unit {
     }
 }
 
+pub fn get_bit_at(num: u8, n: u8) -> Result<u8, ()> {
+    if n < 32 {
+        Ok(num & (1 << n))
+    } else {
+        Err(())
     }
 }
