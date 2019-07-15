@@ -1,4 +1,7 @@
+use crate::errors::MetadataError;
+
 #[derive(Debug, PartialEq)]
+#[repr(u8)]
 pub enum BitDepth {
     One = 1,
     Two = 2,
@@ -8,14 +11,14 @@ pub enum BitDepth {
 }
 
 impl BitDepth {
-    pub fn from_u8(val: u8) -> Self {
-        match val {
-            1 => Self::One,
-            2 => Self::Two,
-            4 => Self::Four,
-            8 => Self::Eight,
-            16 => Self::Sixteen,
-            _ => panic!("unrecognized bit depth")
+    pub fn from_u8(bit_depth: u8) -> Result<Self, MetadataError> {
+        match bit_depth {
+            1 =>  Ok(Self::One),
+            2 =>  Ok(Self::Two),
+            4 =>  Ok(Self::Four),
+            8 =>  Ok(Self::Eight),
+            16 => Ok(Self::Sixteen),
+            _ => Err(MetadataError::UnrecognizedBitDepth{ bit_depth })
         }
     }
 
@@ -42,10 +45,10 @@ pub enum CompressionType {
 }
 
 impl CompressionType {
-    pub fn from_u8(val: u8) -> Self {
-        match val {
-            0 => Self::Deflate,
-            _ => panic!("unrecognized compression type")
+    pub fn from_u8(compression_type: u8) -> Result<Self, MetadataError> {
+        match compression_type {
+            0 => Ok(Self::Deflate),
+            _ => Err(MetadataError::UnrecognizedCompressionType{ compression_type })
         }
     }
 }
@@ -72,14 +75,14 @@ impl std::default::Default for ColorType {
 }
 
 impl ColorType {
-    pub fn from_u8(val: u8) -> Self {
-        match val {
-            0 => Self::Grayscale,
-            2 => Self::RGB,
-            3 => Self::Indexed,
-            4 => Self::GrayscaleAlpha,
-            6 => Self::RGBA,
-            _ => panic!("unrecognized color type")
+    pub fn from_u8(color_type: u8) -> Result<Self, MetadataError> {
+        match color_type {
+            0 => Ok(Self::Grayscale),
+            2 => Ok(Self::RGB),
+            3 => Ok(Self::Indexed),
+            4 => Ok(Self::GrayscaleAlpha),
+            6 => Ok(Self::RGBA),
+            _ => Err(MetadataError::UnrecognizedColorType{ color_type })
         }
     }
 }
@@ -97,11 +100,11 @@ impl std::default::Default for Unit {
 }
 
 impl Unit {
-    pub fn from_u8(value: u8) -> Self {
-        match value {
-            0 => Self::Unknown,
-            1 => Self::Meters,
-            _ => panic!("Unknown value: {}", value),
+    pub fn from_u8(unit: u8) -> Result<Self, MetadataError> {
+        match unit {
+            0 => Ok(Self::Unknown),
+            1 => Ok(Self::Meters),
+            _ => Err(MetadataError::UnrecognizedUnit{ unit }),
         }
     }
 }

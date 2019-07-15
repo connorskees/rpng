@@ -1,5 +1,6 @@
 use std::vec::Vec;
 use std::cmp::min;
+use crate::errors::FilterError;
 
 #[derive(Debug)]
 pub enum FilterType {
@@ -12,14 +13,14 @@ pub enum FilterType {
 }
 
 impl FilterType {
-    pub fn from_u8(val: u8) -> Self {
+    pub fn from_u8(val: u8) -> Result<Self, FilterError> {
         match val {
-            0 => Self::None,
-            1 => Self::Sub,
-            2 => Self::Up,
-            3 => Self::Average,
-            4 => Self::Paeth,
-            _ => panic!(format!("unrecognized filter type: {}", val))
+            0 => Ok(Self::None),
+            1 => Ok(Self::Sub),
+            2 => Ok(Self::Up),
+            3 => Ok(Self::Average),
+            4 => Ok(Self::Paeth),
+            _ => Err(FilterError::UnrecognizedFilterType(val))
         }
     }
 }
@@ -37,10 +38,10 @@ pub enum FilterMethod {
 }
 
 impl FilterMethod {
-    pub fn from_u8(val: u8) -> Self {
+    pub fn from_u8(val: u8) -> Result<Self, FilterError> {
         match val {
-            0 => Self::Adaptive,
-            _ => panic!(format!("unrecognized filter method: {}", val))
+            0 => Ok(Self::Adaptive),
+            _ => Err(FilterError::UnrecognizedFilterMethod(val))
         }
     }
 }
