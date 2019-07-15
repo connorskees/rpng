@@ -10,9 +10,9 @@ use std::vec::Vec;
 use flate2::bufread::ZlibDecoder;
 // use serde_json;
 
-use chunks::{IHDR, PLTE, Chunk, pHYs, iTXt, gAMA, PaletteEntries, AncillaryChunks};
-use common::{ColorType, Unit};
-use filter::{FilterMethod};
+use chunks::{IHDR, PLTE, UnrecognizedChunk, pHYs, iTXt, gAMA, PaletteEntry, AncillaryChunks};
+use common::{BitDepth, ColorType, CompressionType, Unit, Interlacing};
+use filter::{FilterMethod, FilterType};
 
 mod common;
 mod chunks;
@@ -24,7 +24,7 @@ struct PNG {
     ihdr: IHDR,
     plte: Option<PLTE>,
     idat: Vec<u8>,
-    unrecognized_chunks: Vec<Chunk>,
+    unrecognized_chunks: Vec<UnrecognizedChunk>,
     ancillary_chunks: AncillaryChunks,
 }
 
@@ -32,7 +32,7 @@ impl fmt::Debug for PNG {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f, 
-            "PNG {{\n    ihdr: {:?}\n    plte: {:?}\n    idat: {} bytes (compressed)\n    unrecognized_chunks: {:#?}\n    ancillary_chunks: {:#?}}}",
+            "PNG {{\n    ihdr: {:?}\n    plte: {:?}\n    data: {} bytes (compressed)\n    unrecognized_chunks: {:#?}\n    ancillary_chunks: {:#?}}}",
             self.ihdr, self.plte.as_ref(), self.idat.len(), self.unrecognized_chunks, self.ancillary_chunks
         )
     }
@@ -47,7 +47,7 @@ impl PNG {
     pub fn from<T: std::io::BufRead + std::io::Read>(mut f: T) -> io::Result<Self> {
         let mut header = [0; 8];
         let mut ihdr: IHDR = Default::default();
-        let mut unrecognized_chunks: Vec<Chunk> = Vec::new();
+        let mut unrecognized_chunks: Vec<UnrecognizedChunk> = Vec::new();
         let mut idat: Vec<u8> = Vec::new();
         let mut ancillary_chunks: AncillaryChunks = AncillaryChunks::new();
         let mut plte: Option<PLTE> = None;
@@ -93,19 +93,19 @@ impl PNG {
                     ihdr.height = u32::from_be_bytes(height_buffer);
                     
                     f.read(&mut bit_depth_buffer)?;
-                    ihdr.bit_depth = u8::from_be_bytes(bit_depth_buffer);
+                    ihdr.bit_depth = BitDepth::from_u8(u8::from_be_bytes(bit_depth_buffer));
                     
                     f.read(&mut color_type_buffer)?;
                     ihdr.color_type = ColorType::from_u8(u8::from_be_bytes(color_type_buffer));
                     
                     f.read(&mut compression_type_buffer)?;
-                    ihdr.compression_type = u8::from_be_bytes(compression_type_buffer);
+                    ihdr.compression_type = CompressionType::from_u8(u8::from_be_bytes(compression_type_buffer));
                     
                     f.read(&mut filter_method_buffer)?;
-                    ihdr.filter_method = u8::from_be_bytes(filter_method_buffer);
+                    ihdr.filter_method = FilterMethod::from_u8(u8::from_be_bytes(filter_method_buffer));
                     
                     f.read(&mut interlace_method_buffer)?;
-                    ihdr.interlace_method = u8::from_be_bytes(interlace_method_buffer);
+                    ihdr.interlace_method = Interlacing::from_u8(u8::from_be_bytes(interlace_method_buffer));
                 },
                 "PLTE" => {
                     if length % 3 != 0 {
@@ -118,12 +118,11 @@ impl PNG {
                     let mut entries_buffer: Vec<u8> = vec!(0; length as usize);
                     f.read(&mut entries_buffer)?;
                     let entries_: Vec<&[u8]> = entries_buffer.chunks(3).collect();
-                    let entries: Vec<PaletteEntries> =  entries_.iter().map(|x| PaletteEntries::from_u8(x)).collect();
+                    let entries: Vec<PaletteEntry> =  entries_.iter().map(|x| PaletteEntry::from_u8(x)).collect();
 
                     plte = Some(PLTE {
                         entries
                     });
-                    // println!("fjghjfhjfh")
                 },
                 "IDAT" => {
                     let mut v: Vec<u8> = vec!(0; length as usize);
@@ -175,8 +174,6 @@ impl PNG {
                     
                     let mut text_buffer: Vec<u8> = vec!(0; remaining_length as usize);
                     f.read(&mut text_buffer)?;
-
-                    println!("{:?}", keyword_buffer);
 
                     let keyword = String::from_utf8(keyword_buffer).unwrap();
                     let compressed = u8::from_be_bytes(compressed_buffer) != 0;
@@ -243,27 +240,27 @@ impl PNG {
             ColorType:: GrayscaleAlpha => 2,
             ColorType::RGBA => 4,
         };
-        if self.ihdr.bit_depth < 8 {
+        if self.ihdr.bit_depth.as_u8() < 8 {
 
         }
         println!("raw buf len {:?}", buffer.len());
-        let row_length = 1 + (((self.ihdr.bit_depth as f32/8f32) * self.ihdr.width as f32).ceil() as u32 * (chunk_length as u32));
+        let row_length = 1 + (((self.ihdr.bit_depth.as_u8() as f32/8f32) * self.ihdr.width as f32).ceil() as u32 * (chunk_length as u32));
         println!("row length {}", row_length);
-        let filtered_rows: Vec<&[u8]> = buffer.chunks(row_length as usize).collect::<Vec<_>>();
+        let filtered_rows: Vec<&[u8]> = buffer.chunks(row_length as usize).collect::<Vec<&[u8]>>();
         // println!("buffer {:?}", filtered_rows);
         println!("num of rows {}", filtered_rows.len());
         // println!("{:?}", filtered_rows.len());
         for (idx, row) in filtered_rows.iter().enumerate() {
-            // let row_above: Option<&Vec<Vec<u8>>> = if idx == 0 { None } else { Some(&rows[idx-1]) };
             // println!("{:?}", row);
-            rows.push(match FilterMethod::from_u8(row[0]) {
-                FilterMethod::None => row[1..].chunks(chunk_length as usize).map(|x| Vec::from(x)).collect(),
-                FilterMethod::Sub => filter::sub(&row[1..], chunk_length, true),
-                FilterMethod::Up => filter::up(&row[1..], if idx == 0 { None } else { Some(&rows[idx-1]) }, chunk_length, true),
-                FilterMethod::Average => filter::average(&row[1..], if idx == 0 { None } else { Some(&rows[idx-1]) }, chunk_length),
-                FilterMethod::Paeth => filter::paeth(&row[1..], if idx == 0 { None } else { Some(&rows[idx-1]) }, chunk_length, true),
+            rows.push(match FilterType::from_u8(row[0]) {
+                FilterType::None => row[1..].chunks(chunk_length as usize).map(|x| Vec::from(x)).collect(),
+                FilterType::Sub => filter::sub(&row[1..], chunk_length, true),
+                FilterType::Up => filter::up(&row[1..], if idx == 0 { None } else { Some(&rows[idx-1]) }, chunk_length, true),
+                FilterType::Average => filter::average(&row[1..], if idx == 0 { None } else { Some(&rows[idx-1]) }, chunk_length),
+                FilterType::Paeth => filter::paeth(&row[1..], if idx == 0 { None } else { Some(&rows[idx-1]) }, chunk_length, true),
             });
         }
+        // println!("rows {:?}", rows);
         Ok(rows)
     }
 }

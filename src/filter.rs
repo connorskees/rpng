@@ -1,15 +1,16 @@
 use std::vec::Vec;
 use std::cmp::min;
 
-pub enum FilterMethod {
-    None,
-    Sub,
-    Up,
-    Average,
-    Paeth,
+#[derive(Debug)]
+pub enum FilterType {
+    None = 0,
+    Sub = 1,
+    Up = 2,
+    Average = 3,
+    Paeth = 4,
 }
 
-impl FilterMethod {
+impl FilterType {
     pub fn from_u8(val: u8) -> Self {
         match val {
             0 => Self::None,
@@ -17,8 +18,34 @@ impl FilterMethod {
             2 => Self::Up,
             3 => Self::Average,
             4 => Self::Paeth,
+            _ => panic!(format!("unrecognized filter type: {}", val))
+        }
+    }
+}
+
+impl std::default::Default for FilterType {
+    fn default() -> Self {
+        Self::None
+    }
+}
+
+#[derive(Debug)]
+pub enum FilterMethod {
+    Adaptive = 0,
+}
+
+impl FilterMethod {
+    pub fn from_u8(val: u8) -> Self {
+        match val {
+            0 => Self::Adaptive,
             _ => panic!(format!("unrecognized filter method: {}", val))
         }
+    }
+}
+
+impl std::default::Default for FilterMethod {
+    fn default() -> Self {
+        Self::Adaptive
     }
 }
 

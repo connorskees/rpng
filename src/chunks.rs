@@ -1,28 +1,17 @@
 #[allow(non_camel_case_types)]
 use std::fmt;
-use crate::common::{ColorType, Unit};
+use crate::common::{BitDepth, ColorType, CompressionType, Interlacing, Unit};
+use crate::filter::{FilterMethod};
 
 #[derive(Default, Debug)]
 pub struct IHDR {
     pub width: u32,
     pub height: u32,
-    pub bit_depth: u8,
+    pub bit_depth: BitDepth,
     pub color_type: ColorType,
-    pub compression_type: u8,
-    pub filter_method: u8,
-    pub interlace_method: u8,
-}
-
-pub struct Chunk {
-    pub length: u32,
-    pub chunk_type: String,
-    pub bytes: std::vec::Vec<u8>,
-}
-
-impl fmt::Debug for Chunk {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Chunk {{\n    length: {}\n    chunk_type: \"{}\"\n}}", self.length, self.chunk_type)
-    }
+    pub compression_type: CompressionType,
+    pub filter_method: FilterMethod,
+    pub interlace_method: Interlacing,
 }
 
 impl IHDR {
@@ -37,55 +26,58 @@ impl IHDR {
 
         match self.color_type {
             ColorType::Grayscale => {
-                if ![1, 2, 4, 8, 16].contains(&self.bit_depth) {
+                if ![BitDepth::One, BitDepth::Two, BitDepth::Four, BitDepth::Eight, BitDepth::Sixteen].contains(&self.bit_depth) {
                     return Err("invalid bit depth for color type");
                 }
             },
             ColorType::RGB => {
-                if ![8, 16].contains(&self.bit_depth) {
+                if ![BitDepth::Eight, BitDepth::Sixteen].contains(&self.bit_depth) {
                     return Err("invalid bit depth for color type"); 
                 }
             },
             ColorType::Indexed => {
-                if ![1, 2, 4, 8].contains(&self.bit_depth) {
+                if ![BitDepth::One, BitDepth::Two, BitDepth::Four, BitDepth::Eight].contains(&self.bit_depth) {
                     return Err("invalid bit depth for color type");
                 }
             },
             ColorType::GrayscaleAlpha => {
-                if ![8, 16].contains(&self.bit_depth) {
+                if ![BitDepth::Eight, BitDepth::Sixteen].contains(&self.bit_depth) {
                     return Err("invalid bit depth for color type");
                 }
             },
             ColorType::RGBA => {
-                if ![8, 16].contains(&self.bit_depth) {
+                if ![BitDepth::Eight, BitDepth::Sixteen].contains(&self.bit_depth) {
                     return Err("invalid bit depth for color type");
                 }
             },
         }
-
-        if self.compression_type != 0 {
-            return Err("unrecognized compression type");
-        }
-
-        if self.filter_method != 0 {
-            return Err("unrecognized filter method");
-        }
-
-        if self.interlace_method != 0 && self.interlace_method != 1 {
-            return Err("unrecognized interlace method");
-        }        
     Ok(())
     }
 }
 
+pub struct UnrecognizedChunk {
+    pub length: u32,
+    pub chunk_type: String,
+    pub bytes: std::vec::Vec<u8>,
+    pub is_critical: bool,
+    pub is_public: bool,
+    pub is_safe_to_copy: bool,
+}
+
+impl fmt::Debug for UnrecognizedChunk {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "UnrecognizedChunk {{\n    length: {}\n    chunk_type: \"{}\"\n}}", self.length, self.chunk_type)
+    }
+}
+
 #[derive(Default, Debug)]
-pub struct PaletteEntries {
+pub struct PaletteEntry {
     pub red: u8,
     pub green: u8,
     pub blue: u8,
 }
 
-impl PaletteEntries {
+impl PaletteEntry {
     pub fn from_u8(val: &[u8]) -> Self {
         Self {
             red: val[0],
@@ -97,7 +89,7 @@ impl PaletteEntries {
 
 #[derive(Default)]
 pub struct PLTE {
-    pub entries: Vec<PaletteEntries>
+    pub entries: Vec<PaletteEntry>
 }
 
 impl fmt::Debug for PLTE {
