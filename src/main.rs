@@ -54,19 +54,19 @@ impl PNG {
         let mut ancillary_chunks: AncillaryChunks = AncillaryChunks::new();
         let mut plte: Option<PLTE> = None;
 
-        f.read(&mut header)?;
+        f.read_exact(&mut header)?;
         if header != [137u8, 80, 78, 71, 13, 10, 26, 10] {
             panic!("invalid header");
         }
 
         loop {
             let mut length_buffer: [u8; 4] = [0; 4];
-            f.read(&mut length_buffer)?;
+            f.read_exact(&mut length_buffer)?;
             let length: u32 = u32::from_be_bytes(length_buffer);
 
-            let mut type_buffer: [u8; 4] = [0; 4];
-            f.read(&mut type_buffer)?;
-            let chunk_type = str::from_utf8(&type_buffer).unwrap();
+            let mut chunk_type_buffer: [u8; 4] = [0; 4];
+            f.read_exact(&mut chunk_type_buffer)?;
+            let chunk_type = str::from_utf8(&chunk_type_buffer).unwrap();
             println!("{:#?}", chunk_type);
 
             match chunk_type {
@@ -88,25 +88,25 @@ impl PNG {
                         panic!("invalid IHDR length");
                     }
 
-                    f.read(&mut width_buffer)?;
+                    f.read_exact(&mut width_buffer)?;
                     ihdr.width = u32::from_be_bytes(width_buffer);
                     
-                    f.read(&mut height_buffer)?;
+                    f.read_exact(&mut height_buffer)?;
                     ihdr.height = u32::from_be_bytes(height_buffer);
                     
-                    f.read(&mut bit_depth_buffer)?;
+                    f.read_exact(&mut bit_depth_buffer)?;
                     ihdr.bit_depth = BitDepth::from_u8(u8::from_be_bytes(bit_depth_buffer));
                     
-                    f.read(&mut color_type_buffer)?;
+                    f.read_exact(&mut color_type_buffer)?;
                     ihdr.color_type = ColorType::from_u8(u8::from_be_bytes(color_type_buffer));
                     
-                    f.read(&mut compression_type_buffer)?;
+                    f.read_exact(&mut compression_type_buffer)?;
                     ihdr.compression_type = CompressionType::from_u8(u8::from_be_bytes(compression_type_buffer));
                     
-                    f.read(&mut filter_method_buffer)?;
+                    f.read_exact(&mut filter_method_buffer)?;
                     ihdr.filter_method = FilterMethod::from_u8(u8::from_be_bytes(filter_method_buffer));
                     
-                    f.read(&mut interlace_method_buffer)?;
+                    f.read_exact(&mut interlace_method_buffer)?;
                     ihdr.interlace_method = Interlacing::from_u8(u8::from_be_bytes(interlace_method_buffer));
                 },
                 "PLTE" => {
@@ -118,7 +118,7 @@ impl PNG {
                         ColorType::Grayscale | ColorType:: GrayscaleAlpha => panic!("unexpected PLTE chunk")   
                     }
                     let mut entries_buffer: Vec<u8> = vec!(0; length as usize);
-                    f.read(&mut entries_buffer)?;
+                    f.read_exact(&mut entries_buffer)?;
                     let entries_: Vec<&[u8]> = entries_buffer.chunks(3).collect();
                     let entries: Vec<PaletteEntry> =  entries_.iter().map(|x| PaletteEntry::from_u8(x)).collect();
 
@@ -128,7 +128,7 @@ impl PNG {
                 },
                 "IDAT" => {
                     let mut v: Vec<u8> = vec!(0; length as usize);
-                    f.read(&mut v)?;
+                    f.read_exact(&mut v)?;
                     idat.extend(v);
                 },
                 "IEND" => {
@@ -141,13 +141,13 @@ impl PNG {
                     let mut pixels_per_y_buffer = [0; 4];
                     let mut unit_buffer = [0];
 
-                    f.read(&mut pixels_per_x_buffer)?;
+                    f.read_exact(&mut pixels_per_x_buffer)?;
                     let pixels_per_unit_x = u32::from_be_bytes(pixels_per_x_buffer);
 
-                    f.read(&mut pixels_per_y_buffer)?;
+                    f.read_exact(&mut pixels_per_y_buffer)?;
                     let pixels_per_unit_y = u32::from_be_bytes(pixels_per_y_buffer);
 
-                    f.read(&mut unit_buffer)?;
+                    f.read_exact(&mut unit_buffer)?;
                     let unit = u8::from_be_bytes(unit_buffer);
 
                     ancillary_chunks.phys = Some(pHYs {
@@ -163,8 +163,8 @@ impl PNG {
                     let mut translated_keyword_buffer = Vec::new();
 
                     let keyword_len = f.read_until(b'\0', &mut keyword_buffer)?;
-                    f.read(&mut compressed_buffer)?;
-                    f.read(&mut compression_method_buffer)?;
+                    f.read_exact(&mut compressed_buffer)?;
+                    f.read_exact(&mut compression_method_buffer)?;
                     let language_tag_len = f.read_until(0, &mut language_tag_buffer)?;
                     let translated_keyword_len = f.read_until(0, &mut translated_keyword_buffer)?;
 
@@ -175,7 +175,7 @@ impl PNG {
                                             - (translated_keyword_len as u32);
                     
                     let mut text_buffer: Vec<u8> = vec!(0; remaining_length as usize);
-                    f.read(&mut text_buffer)?;
+                    f.read_exact(&mut text_buffer)?;
 
                     let keyword = String::from_utf8(keyword_buffer).unwrap();
                     let compressed = u8::from_be_bytes(compressed_buffer) != 0;
@@ -199,7 +199,7 @@ impl PNG {
                         panic!("invalid gAMA length");
                     }
                     let mut gamma_buffer = [0; 4];
-                    f.read(&mut gamma_buffer)?;
+                    f.read_exact(&mut gamma_buffer)?;
                     let gamma = u32::from_be_bytes(gamma_buffer);
                     ancillary_chunks.gama = Some(gAMA { gamma });
                 },
@@ -215,28 +215,28 @@ impl PNG {
                         mut blue_y_buffer
                     ) = ([0; 4], [0; 4], [0; 4], [0; 4], [0; 4], [0; 4], [0; 4], [0; 4]);
                     
-                    f.read(&mut white_point_x_buffer)?;
+                    f.read_exact(&mut white_point_x_buffer)?;
                     let white_point_x = u32::from_be_bytes(white_point_x_buffer);
 
-                    f.read(&mut white_point_y_buffer)?;
+                    f.read_exact(&mut white_point_y_buffer)?;
                     let white_point_y = u32::from_be_bytes(white_point_y_buffer);
 
-                    f.read(&mut red_x_buffer)?;
+                    f.read_exact(&mut red_x_buffer)?;
                     let red_x = u32::from_be_bytes(red_x_buffer);
 
-                    f.read(&mut red_y_buffer)?;
+                    f.read_exact(&mut red_y_buffer)?;
                     let red_y = u32::from_be_bytes(red_y_buffer);
 
-                    f.read(&mut green_x_buffer)?;
+                    f.read_exact(&mut green_x_buffer)?;
                     let green_x = u32::from_be_bytes(green_x_buffer);
 
-                    f.read(&mut green_y_buffer)?;
+                    f.read_exact(&mut green_y_buffer)?;
                     let green_y = u32::from_be_bytes(green_y_buffer);
 
-                    f.read(&mut blue_x_buffer)?;
+                    f.read_exact(&mut blue_x_buffer)?;
                     let blue_x = u32::from_be_bytes(blue_x_buffer);
 
-                    f.read(&mut blue_y_buffer)?;
+                    f.read_exact(&mut blue_y_buffer)?;
                     let blue_y = u32::from_be_bytes(blue_y_buffer);
 
                     ancillary_chunks.chrm = Some(cHRM {
