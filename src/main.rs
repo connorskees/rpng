@@ -1,3 +1,5 @@
+//! Module for working with PNG files
+
 #![allow(dead_code)]
 #![deny(unsafe_code)]
 
@@ -10,13 +12,13 @@ use std::vec::Vec;
 use flate2::bufread::ZlibDecoder;
 // use serde_json;
 
-use chunks::{IHDR, PLTE, UnrecognizedChunk, pHYs, iTXt, gAMA, PaletteEntry, AncillaryChunks};
+use chunks::{IHDR, PLTE, UnrecognizedChunk, pHYs, iTXt, gAMA, cHRM, PaletteEntry, AncillaryChunks};
 use common::{BitDepth, ColorType, CompressionType, Unit, Interlacing};
 use filter::{FilterMethod, FilterType};
 
-mod common;
-mod chunks;
-mod filter;
+pub mod common;
+pub mod chunks;
+pub mod filter;
 
 const FILE_NAME: &str = "redrect";
 
@@ -200,14 +202,73 @@ impl PNG {
                     f.read(&mut gamma_buffer)?;
                     let gamma = u32::from_be_bytes(gamma_buffer);
                     ancillary_chunks.gama = Some(gAMA { gamma });
+                },
+                "cHRM" => {
+                    let (
+                        mut white_point_x_buffer,
+                        mut white_point_y_buffer,
+                        mut red_x_buffer,
+                        mut red_y_buffer,
+                        mut green_x_buffer,
+                        mut green_y_buffer,
+                        mut blue_x_buffer,
+                        mut blue_y_buffer
+                    ) = ([0; 4], [0; 4], [0; 4], [0; 4], [0; 4], [0; 4], [0; 4], [0; 4]);
+                    
+                    f.read(&mut white_point_x_buffer)?;
+                    let white_point_x = u32::from_be_bytes(white_point_x_buffer);
+
+                    f.read(&mut white_point_y_buffer)?;
+                    let white_point_y = u32::from_be_bytes(white_point_y_buffer);
+
+                    f.read(&mut red_x_buffer)?;
+                    let red_x = u32::from_be_bytes(red_x_buffer);
+
+                    f.read(&mut red_y_buffer)?;
+                    let red_y = u32::from_be_bytes(red_y_buffer);
+
+                    f.read(&mut green_x_buffer)?;
+                    let green_x = u32::from_be_bytes(green_x_buffer);
+
+                    f.read(&mut green_y_buffer)?;
+                    let green_y = u32::from_be_bytes(green_y_buffer);
+
+                    f.read(&mut blue_x_buffer)?;
+                    let blue_x = u32::from_be_bytes(blue_x_buffer);
+
+                    f.read(&mut blue_y_buffer)?;
+                    let blue_y = u32::from_be_bytes(blue_y_buffer);
+
+                    ancillary_chunks.chrm = Some(cHRM {
+                        white_point_x,
+                        white_point_y,
+                        red_x,
+                        red_y,
+                        green_x,
+                        green_y,
+                        blue_x,
+                        blue_y, 
+                    });
+                },
+                "iCCP" => {
+
                 }
                 _ => {
                     let mut v: Vec<u8> = vec!(0; length as usize);
                     f.read(&mut v)?;
-                    unrecognized_chunks.push(Chunk {
+                    let is_critical = common::get_bit_at(v[0], 5).unwrap() == 0;
+                    let is_public = common::get_bit_at(v[1], 5).unwrap() == 0;
+                    let is_safe_to_copy = common::get_bit_at(v[2], 5).unwrap() == 1;
+                    if is_critical {
+                        panic!("unrecognized critical chunk found");
+                    }
+                    unrecognized_chunks.push(UnrecognizedChunk {
                         length,
                         chunk_type: String::from(chunk_type),
                         bytes: v,
+                        is_critical,
+                        is_public,
+                        is_safe_to_copy,
                     })
                 }
             }

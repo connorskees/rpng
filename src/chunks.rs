@@ -122,22 +122,31 @@ pub struct gAMA {
 
 #[derive(Default, Debug)]
 pub struct cHRM {
-    white_point_x: u32,
-    white_point_y: u32,
-    red_x: u32,
-    red_y: u32,
-    green_x: u32,
-    green_y: u32,
-    blue_x: u32,
-    blue_y: u32,
+    pub white_point_x: u32,
+    pub white_point_y: u32,
+    pub red_x: u32,
+    pub red_y: u32,
+    pub green_x: u32,
+    pub green_y: u32,
+    pub blue_x: u32,
+    pub blue_y: u32,
 }
 
+#[derive(Default, Debug)]
+pub struct iCCP {
+    pub profile_name: String,
+    pub compression_method: CompressionType,
+    pub compressed_profile: Vec<u8>,
+}
+
+/// Ancillary chunks are those that are not necessary to render the image
 #[derive(Default, Debug)]
 pub struct AncillaryChunks {
     pub phys: Option<pHYs>,
     pub itxt: Vec<Option<iTXt>>,
     pub gama: Option<gAMA>,
     pub chrm: Option<cHRM>,
+    pub iccp: Option<iCCP>,
 }
 
 impl AncillaryChunks {
@@ -147,6 +156,7 @@ impl AncillaryChunks {
             itxt: Vec::new(),
             gama: None,
             chrm: None,
+            iccp: None,
         }
     }
 }

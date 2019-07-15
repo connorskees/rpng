@@ -3,6 +3,7 @@ use std::cmp::min;
 
 #[derive(Debug)]
 pub enum FilterType {
+    /// No filter is applied
     None = 0,
     Sub = 1,
     Up = 2,
@@ -31,6 +32,7 @@ impl std::default::Default for FilterType {
 
 #[derive(Debug)]
 pub enum FilterMethod {
+    /// The default filter method. This exposes 5 filter algorithms: none, sub, up, average, and paeth
     Adaptive = 0,
 }
 
