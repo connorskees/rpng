@@ -50,11 +50,6 @@ impl fmt::Debug for PNG {
 }
 
 impl PNG {
-    pub fn from_path(file_path: &str) -> Result<Self, PNGDecodingError> {
-        let metadata = fs::metadata(file_path)?;
-        PNGDecoder::read(BufReader::with_capacity(metadata.len() as usize, File::open(file_path)?))
-    }
-
     pub fn pixels(&self) -> Result<Bitmap, PNGDecodingError> {
         let mut buffer: Vec<u8> = Vec::new();
         let mut zlib = ZlibDecoder::new(&self.idat as &[u8]);
@@ -96,6 +91,16 @@ impl PNG {
 fn main() -> io::Result<()> {
     let png = PNG::from_path(&format!("pngs/{}.png", FILE_NAME))?;
     // let png = PNG::from_path(r"C:\Users\Connor\Downloads\PngSuite-2017jul19\oi9n2c16.png")?;
+impl <'a> PNG {
+    pub fn from_path<S>(file_path: S) -> Result<Self, PNGDecodingError>
+        where S: Into<std::borrow::Cow<'a, str>> + std::convert::AsRef<std::path::Path>
+    {
+        let file_size: usize = fs::metadata(&file_path)?.len() as usize;
+        PNGDecoder::read(BufReader::with_capacity(file_size, File::open(file_path)?))
+    }
+}
+
+
 fn main() -> Result<(), PNGDecodingError> {
     println!("{:?}", png);
     let pixels = png.pixels()?;
