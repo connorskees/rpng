@@ -1,4 +1,5 @@
 use std::io;
+use crate::common::{BitDepth, ColorType};
 
 #[derive(Debug)]
 pub enum PNGDecodingError {
@@ -12,6 +13,7 @@ pub enum PNGDecodingError {
     InvalidgAMALength,
     IoError(io::Error),
     ZeroLengthIDAT(&'static str),
+    StringDecodeError(std::str::Utf8Error),
 }
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
@@ -21,6 +23,9 @@ pub enum MetadataError {
     UnrecognizedUnit{ unit: u8 },
     UnrecognizedColorType{ color_type: u8 },
     UnrecognizedInterlacingType{ interlacing_type: u8 },
+    InvalidWidth{ width: u32 },
+    InvalidHeight{ height: u32 },
+    InvalidBitDepthForColorType{ bit_depth: BitDepth, color_type: ColorType }
 }
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
@@ -47,5 +52,11 @@ impl std::convert::From<FilterError> for PNGDecodingError {
 impl std::convert::From<MetadataError> for PNGDecodingError {
     fn from(error: MetadataError) -> Self {
         PNGDecodingError::MetadataError(error)
+    }
+}
+
+impl std::convert::From<std::str::Utf8Error> for PNGDecodingError {
+    fn from(error: std::str::Utf8Error) -> Self {
+        PNGDecodingError::StringDecodeError(error)
     }
 }

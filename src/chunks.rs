@@ -2,6 +2,7 @@ use std::fmt;
 use crate::common::{BitDepth, ColorType, CompressionType, Unit};
 use crate::filter::{FilterMethod};
 use crate::interlacing::{Interlacing};
+use crate::errors::MetadataError;
 
 /// The IHDR chunk contains important metadata for reading the image
 #[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
@@ -24,40 +25,42 @@ impl IHDR {
             compression_type: CompressionType, 
             filter_method: FilterMethod, 
             interlace_method: Interlacing
-        ) -> Result<Self, &'static str> {
+        ) -> Result<Self, MetadataError> {
 
         if !(0 < width && width < 2u32.pow(31)) {
-            return Err("width not between 0 and 2^31");
+            // between 0 and 2^31
+            return Err(MetadataError::InvalidWidth{ width });
         }
         
         if !(0 < height && height < 2u32.pow(31)) {
-            return Err("height not between 0 and 2^31");
+            // between 0 and 2^31
+            return Err(MetadataError::InvalidHeight{ height });
         }
 
         match color_type {
             ColorType::Grayscale => {
                 if ![BitDepth::One, BitDepth::Two, BitDepth::Four, BitDepth::Eight, BitDepth::Sixteen].contains(&bit_depth) {
-                    return Err("invalid bit depth for color type");
+                    return Err(MetadataError::InvalidBitDepthForColorType{ bit_depth, color_type });
                 }
             },
             ColorType::RGB => {
                 if ![BitDepth::Eight, BitDepth::Sixteen].contains(&bit_depth) {
-                    return Err("invalid bit depth for color type"); 
+                    return Err(MetadataError::InvalidBitDepthForColorType{ bit_depth, color_type }); 
                 }
             },
             ColorType::Indexed => {
                 if ![BitDepth::One, BitDepth::Two, BitDepth::Four, BitDepth::Eight].contains(&bit_depth) {
-                    return Err("invalid bit depth for color type");
+                    return Err(MetadataError::InvalidBitDepthForColorType{ bit_depth, color_type });
                 }
             },
             ColorType::GrayscaleAlpha => {
                 if ![BitDepth::Eight, BitDepth::Sixteen].contains(&bit_depth) {
-                    return Err("invalid bit depth for color type");
+                    return Err(MetadataError::InvalidBitDepthForColorType{ bit_depth, color_type });
                 }
             },
             ColorType::RGBA => {
                 if ![BitDepth::Eight, BitDepth::Sixteen].contains(&bit_depth) {
-                    return Err("invalid bit depth for color type");
+                    return Err(MetadataError::InvalidBitDepthForColorType{ bit_depth, color_type });
                 }
             },
         }

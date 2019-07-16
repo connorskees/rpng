@@ -32,7 +32,7 @@ impl PNGDecoder {
 
             let mut chunk_type_buffer: [u8; 4] = [0; 4];
             f.read_exact(&mut chunk_type_buffer)?;
-            let chunk_type = str::from_utf8(&chunk_type_buffer).unwrap();
+            let chunk_type = str::from_utf8(&chunk_type_buffer)?;
             println!("{:#?}", chunk_type);
 
             match chunk_type {
@@ -75,7 +75,7 @@ impl PNGDecoder {
                     f.read_exact(&mut interlace_method_buffer)?;
                     let interlace_method = Interlacing::from_u8(u8::from_be_bytes(interlace_method_buffer));
 
-                    ihdr = IHDR::new(width, height, bit_depth, color_type, compression_type, filter_method, interlace_method).unwrap();
+                    ihdr = IHDR::new(width, height, bit_depth, color_type, compression_type, filter_method, interlace_method)?;
                 },
                 "PLTE" => {
                     if length % 3 != 0 {
