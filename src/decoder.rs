@@ -145,12 +145,12 @@ impl PNGDecoder {
                     let mut text_buffer: Vec<u8> = vec!(0; remaining_length as usize);
                     f.read_exact(&mut text_buffer)?;
 
-                    let keyword = String::from_utf8(keyword_buffer).unwrap();
+                    let keyword = if let Ok(k) = String::from_utf8(keyword_buffer) { k } else { continue };
                     let compressed = u8::from_be_bytes(compressed_buffer) != 0;
                     let compression_method = if compressed { Some(CompressionType::from_u8(u8::from_be_bytes(compression_method_buffer))?) } else { None };
-                    let language_tag = String::from_utf8(language_tag_buffer).unwrap();
-                    let translated_keyword = String::from_utf8(translated_keyword_buffer).unwrap();
-                    let text = String::from_utf8(text_buffer).unwrap();
+                    let language_tag = if let Ok(lt) = String::from_utf8(language_tag_buffer) { lt } else { continue };
+                    let translated_keyword = if let Ok(tk) = String::from_utf8(translated_keyword_buffer) { tk } else { continue };
+                    let text = if let Ok(t) = String::from_utf8(text_buffer) { t } else { continue };
 
                     let itxt = iTXt {
                         keyword,
@@ -232,7 +232,7 @@ impl PNGDecoder {
                     let mut compressed_profile: Vec<u8> = vec!(0; remaining_length as usize);
                     f.read_exact(&mut compressed_profile)?;
 
-                    let profile_name = String::from_utf8(profile_name_buffer).unwrap();
+                    let profile_name = if let Ok(pn) = String::from_utf8(profile_name_buffer) { pn } else { continue };
                     let compression_method = CompressionType::from_u8(u8::from_be_bytes(compression_method_buffer))?;
                     ancillary_chunks.iccp = Some(iCCP {
                         profile_name, compression_method, compressed_profile,

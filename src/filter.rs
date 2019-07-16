@@ -71,10 +71,10 @@ pub fn sub(this_row: &[u8], chunk_size: u8, reverse: bool) -> Vec<Vec<u8>> {
 
 pub fn up(this_row: &[u8], row_above: Option<&Vec<Vec<u8>>>, chunk_size: u8, reverse: bool) -> Vec<Vec<u8>> {
     let mut this_row_chunks: Vec<Vec<u8>> = this_row.chunks(chunk_size as usize).map(Vec::from).collect();
-    if row_above == None { return this_row_chunks }
+    let row_above: &Vec<Vec<u8>> = if let Some(ra) = row_above { ra } else { return this_row_chunks };
     for idx1 in 0..this_row_chunks.len() {
         for idx2 in 0..this_row_chunks[idx1].len() {
-            let b = row_above.unwrap()[idx1][idx2];
+            let b = row_above[idx1][idx2];
             if reverse {
                 this_row_chunks[idx1][idx2] = this_row_chunks[idx1][idx2].wrapping_add(b);
             } else {
@@ -90,7 +90,7 @@ pub fn average(this_row: &[u8], row_above: Option<&Vec<Vec<u8>>>, chunk_size: u8
     for pixel_idx in 0..this_row_chunks.len() { // start at 1 because first pixel (0th) is initial
         for rgba_idx in 0..this_row_chunks[pixel_idx].len() {
             let a = if pixel_idx == 0 { 0 } else { this_row_chunks[pixel_idx-1][rgba_idx] };
-            let b = if row_above == None { 0 } else { row_above.unwrap()[pixel_idx][rgba_idx] };
+            let b: u8 = if let Some(val) = row_above { val[pixel_idx][rgba_idx] } else { 0 };
             this_row_chunks[pixel_idx][rgba_idx] = this_row_chunks[pixel_idx][rgba_idx].wrapping_add(((u16::from(a) + u16::from(b)) / 2) as u8);
         }
     }
@@ -101,7 +101,7 @@ pub fn paeth(this_row: &[u8], row_above: Option<&Vec<Vec<u8>>>, chunk_size: u8, 
     let mut this_row_chunks: Vec<Vec<u8>> = this_row.chunks(chunk_size as usize).map(Vec::from).collect();
     let is_first_row: bool = row_above == None;
     let placeholder: &Vec<Vec<u8>> = &Vec::new();
-    let above = row_above.unwrap_or(placeholder);
+    let above: &Vec<Vec<u8>> = if let Some(val) = row_above { val } else { placeholder };
     for pixel_idx in 0..this_row_chunks.len() { // start at 1 because first pixel (0th) is initial
         for rgba_idx in 0..this_row_chunks[pixel_idx].len() {
             let p: u8 = if pixel_idx == 0 {
