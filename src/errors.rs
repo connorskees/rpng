@@ -14,7 +14,7 @@ pub enum PNGDecodingError {
     ZeroLengthIDAT(&'static str),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum MetadataError {
     UnrecognizedBitDepth{ bit_depth: u8 },
     UnrecognizedCompressionType{ compression_type: u8 },
@@ -23,13 +23,13 @@ pub enum MetadataError {
     UnrecognizedInterlacingType{ interlacing_type: u8 },
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum FilterError {
     UnrecognizedFilterMethod(u8),
     UnrecognizedFilterType(u8),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum ChunkError {}
 
 impl std::convert::From<io::Error> for PNGDecodingError {

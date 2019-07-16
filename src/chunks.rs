@@ -4,7 +4,7 @@ use crate::filter::{FilterMethod};
 use crate::interlacing::{Interlacing};
 
 /// The IHDR chunk contains important metadata for reading the image
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct IHDR {
     pub width: u32,
     pub height: u32,
@@ -67,6 +67,7 @@ impl IHDR {
     }
 }
 
+#[derive(Clone, Hash, PartialEq, Eq)]
 pub struct UnrecognizedChunk {
     pub length: u32,
     pub chunk_type: String,
@@ -82,7 +83,7 @@ impl fmt::Debug for UnrecognizedChunk {
     }
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct PaletteEntry {
     pub red: u8,
     pub green: u8,
@@ -100,7 +101,7 @@ impl PaletteEntry {
 }
 
 /// The PLTE chunk contains a list of palette entries
-#[derive(Default)]
+#[derive(Default, Clone, Hash, PartialEq, Eq)]
 pub struct PLTE {
     pub entries: Vec<PaletteEntry>
 }
@@ -112,7 +113,7 @@ impl fmt::Debug for PLTE {
 }
 
 /// The pHYs chunk contains information about the aspect ratio
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub struct pHYs {
     pub pixels_per_unit_x: u32,
@@ -121,7 +122,7 @@ pub struct pHYs {
 }
 
 /// The iTXt chunk contains utf8 text
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub struct iTXt {
     pub keyword: String,
@@ -132,13 +133,13 @@ pub struct iTXt {
     pub text: String,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub struct gAMA {
     pub gamma: u32
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub struct cHRM {
     pub white_point_x: u32,
@@ -151,7 +152,7 @@ pub struct cHRM {
     pub blue_y: u32,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub struct iCCP {
     pub profile_name: String,
@@ -160,7 +161,7 @@ pub struct iCCP {
 }
 
 /// Ancillary chunks are those that are not necessary to render the image
-#[derive(Default, Debug)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct AncillaryChunks {
     pub phys: Option<pHYs>,
     pub itxt: Vec<Option<iTXt>>,

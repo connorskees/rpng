@@ -8,7 +8,7 @@ use crate::interlacing::{Interlacing};
 use crate::errors::PNGDecodingError;
 use crate::PNG;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct PNGDecoder;
 
 impl PNGDecoder {

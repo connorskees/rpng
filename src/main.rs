@@ -30,6 +30,7 @@ type Bitmap = Vec<Vec<Vec<u8>>>;
 
 const FILE_NAME: &str = "redrect";
 
+#[derive(Clone, Hash, PartialEq, Eq)]
 pub struct PNG {
     ihdr: IHDR,
     plte: Option<PLTE>,

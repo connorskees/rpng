@@ -2,7 +2,7 @@ use std::vec::Vec;
 use std::cmp::min;
 use crate::errors::FilterError;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 #[repr(u8)]
 pub enum FilterType {
     /// No filter is applied
@@ -32,7 +32,7 @@ impl std::default::Default for FilterType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 #[repr(u8)]
 pub enum FilterMethod {
     /// The default filter method. This exposes 5 filter algorithms: none, sub, up, average, and paeth

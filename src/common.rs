@@ -1,6 +1,6 @@
 use crate::errors::MetadataError;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 #[repr(u8)]
 pub enum BitDepth {
     One = 1,
@@ -39,7 +39,7 @@ impl std::default::Default for BitDepth {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 #[repr(u8)]
 pub enum CompressionType {
     Deflate = 0,
@@ -60,7 +60,7 @@ impl std::default::Default for CompressionType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 #[repr(u8)]
 pub enum ColorType {
     Grayscale = 0,
@@ -99,7 +99,7 @@ impl ColorType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 #[repr(u8)]
 pub enum Unit {
     Unknown = 0,
