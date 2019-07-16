@@ -124,6 +124,7 @@ pub fn paeth(this_row: &[u8], row_above: Option<&Vec<Vec<u8>>>, chunk_size: u8, 
     this_row_chunks
 }
 
+
 fn paeth_predictor(a: i16, b: i16, c: i16) -> u8 {
     let p = a + b - c;
     let pa = (p - a).abs();
@@ -131,9 +132,9 @@ fn paeth_predictor(a: i16, b: i16, c: i16) -> u8 {
     let pc = (p - c).abs();
 
     match min(min(pa, pb), pc) { // order here for ties is important
-        x if x == pa => a as u8,
-        x if x == pb => b as u8,
-        x if x == pc => c as u8,
+        diff if diff == pa => a as u8,
+        diff if diff == pb => b as u8,
+        diff if diff == pc => c as u8,
         _ => panic!("err")
     }
 }
