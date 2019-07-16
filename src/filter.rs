@@ -135,6 +135,6 @@ fn paeth_predictor(a: i16, b: i16, c: i16) -> u8 {
         diff if diff == pa => a as u8,
         diff if diff == pb => b as u8,
         diff if diff == pc => c as u8,
-        _ => panic!("err")
+        _ => panic!("error in paeth predictor (this indicates an error in the library. please file an issue at https://github.com/ConnorSkees/rpng/issues)")
     }
 }

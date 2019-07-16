@@ -73,7 +73,7 @@ impl PNGDecoder {
                     let filter_method = FilterMethod::from_u8(u8::from_be_bytes(filter_method_buffer))?;
                     
                     f.read_exact(&mut interlace_method_buffer)?;
-                    let interlace_method = Interlacing::from_u8(u8::from_be_bytes(interlace_method_buffer));
+                    let interlace_method = Interlacing::from_u8(u8::from_be_bytes(interlace_method_buffer))?;
 
                     ihdr = IHDR::new(width, height, bit_depth, color_type, compression_type, filter_method, interlace_method)?;
                 },
@@ -164,7 +164,7 @@ impl PNGDecoder {
                 },
                 "gAMA" => {
                     if length != 4 {
-                        panic!("invalid gAMA length");
+                        return Err(PNGDecodingError::InvalidgAMALength);
                     }
                     let mut gamma_buffer = [0; 4];
                     f.read_exact(&mut gamma_buffer)?;
@@ -245,7 +245,7 @@ impl PNGDecoder {
                     let is_public = get_bit_at(chunk_type_buffer[1], 5).unwrap() == 0;
                     let is_safe_to_copy = get_bit_at(chunk_type_buffer[2], 5).unwrap() == 1;
                     if is_critical {
-                        panic!("unrecognized critical chunk found");
+                        return Err(PNGDecodingError::UnrecognizedCriticalChunk);
                     }
                     unrecognized_chunks.push(UnrecognizedChunk {
                         length,

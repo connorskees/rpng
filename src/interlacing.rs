@@ -1,3 +1,5 @@
+use crate::errors::MetadataError;
+
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 #[repr(u8)]
 pub enum Interlacing {
@@ -12,11 +14,11 @@ impl std::default::Default for Interlacing {
 }
 
 impl Interlacing {
-    pub fn from_u8(value: u8) -> Self {
-        match value {
-            0 => Self::None,
+    pub fn from_u8(interlacing_type: u8) -> Result<Self, MetadataError> {
+        match interlacing_type {
+            0 => Ok(Self::None),
             1 => unimplemented!("adam7 interlacing is not currently supported"),//Self::Adam7,
-            _ => panic!("Unknown value: {}", value),
+            _ => Err(MetadataError::UnrecognizedInterlacingType{ interlacing_type }),
         }
     }
 
