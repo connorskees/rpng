@@ -22,7 +22,7 @@ impl BitDepth {
         }
     }
 
-    pub fn as_u8(&self) -> u8 {
+    pub fn as_u8(self) -> u8 {
         match self {
             Self::One => 1,
             Self::Two => 2,
@@ -88,7 +88,7 @@ impl ColorType {
         }
     }
 
-    pub fn channels(&self) -> u8 {
+    pub fn channels(self) -> u8 {
         match self {
             Self::Grayscale => 1,
             Self::RGB => 3,

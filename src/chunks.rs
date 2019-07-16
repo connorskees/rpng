@@ -184,3 +184,9 @@ impl AncillaryChunks {
         }
     }
 }
+
+impl std::default::Default for AncillaryChunks {
+    fn default() -> Self {
+        AncillaryChunks::new()
+    }
+}
