@@ -138,3 +138,15 @@ fn paeth_predictor(a: i16, b: i16, c: i16) -> u8 {
         _ => panic!("error in paeth predictor (this indicates an error in the library. please file an issue at https://github.com/ConnorSkees/rpng/issues)")
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_paeth_predictor() {
+        assert_eq!(paeth_predictor(37, 84, 1), 84);
+        assert_eq!(paeth_predictor(118, 128, 125), 118);
+        assert_eq!(paeth_predictor(37, 84, 61), 61);
+    }
+}
