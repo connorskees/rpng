@@ -170,6 +170,14 @@ pub struct iCCP {
     pub compressed_profile: Vec<u8>,
 }
 
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[allow(non_camel_case_types)]
+pub enum bKGD {
+    Grayscale{grayscale: u16},
+    RGB{red: u16, green: u16, blue: u16},
+    Palette{palette_index: u8},
+}
+
 /// Ancillary chunks are those that are not necessary to render the image
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 #[allow(non_snake_case)]
@@ -180,6 +188,7 @@ pub struct AncillaryChunks {
     pub chrm: Option<cHRM>,
     pub iccp: Option<iCCP>,
     pub tEXt: Vec<Option<tEXt>>,
+    pub bKGD: Option<bKGD>,
 }
 
 impl AncillaryChunks {
@@ -191,6 +200,7 @@ impl AncillaryChunks {
             chrm: None,
             iccp: None,
             tEXt: Vec::new(),
+            bKGD: None,
         }
     }
 }

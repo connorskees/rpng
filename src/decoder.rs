@@ -188,6 +188,34 @@ impl PNGDecoder {
                     };
                     ancillary_chunks.itxt.push(Some(itxt));
                 },
+                "bKGD" => {
+                    match ihdr.color_type {
+                        ColorType::Grayscale | ColorType::GrayscaleAlpha => {
+                            let mut grayscale_buffer = [0; 2];
+                            f.read_exact(&mut grayscale_buffer)?;
+                            let grayscale = u16::from_be_bytes(grayscale_buffer);
+                            ancillary_chunks.bKGD = Some(bKGD::Grayscale{ grayscale });
+                        },
+                        ColorType::RGB | ColorType::RGBA => {
+                            let mut red_buffer = [0; 2];
+                            let mut green_buffer = [0; 2];
+                            let mut blue_buffer = [0; 2];
+                            f.read_exact(&mut red_buffer)?;
+                            f.read_exact(&mut green_buffer)?;
+                            f.read_exact(&mut blue_buffer)?;
+                            let red = u16::from_be_bytes(red_buffer);
+                            let green = u16::from_be_bytes(green_buffer);
+                            let blue = u16::from_be_bytes(blue_buffer);
+                            ancillary_chunks.bKGD = Some(bKGD::RGB{ red, green, blue });
+                        },
+                        ColorType::Indexed => {
+                            let mut palette_index_buffer = [0];
+                            f.read_exact(&mut palette_index_buffer)?;
+                            let palette_index = u8::from_be_bytes(palette_index_buffer);
+                            ancillary_chunks.bKGD = Some(bKGD::Palette{ palette_index });
+                        }
+                    }
+                }
                 "gAMA" => {
                     if length != 4 {
                         return Err(PNGDecodingError::InvalidgAMALength);
