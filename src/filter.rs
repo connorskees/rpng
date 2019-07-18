@@ -7,9 +7,13 @@ use crate::errors::FilterError;
 pub enum FilterType {
     /// No filter is applied
     None = 0,
+    /// The pixel is subtracted by the pixel to the left of it
     Sub = 1,
+    /// The pixel is subtracted by the pixel above it
     Up = 2,
+    /// The pixel is subtracted by the average of the pixel to the left and above
     Average = 3,
+    /// The pixel is subtracted by the pixel that comes out of a prediction algorithm 
     Paeth = 4,
 }
 
