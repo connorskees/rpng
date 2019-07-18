@@ -124,6 +124,13 @@ pub struct pHYs {
     pub unit: Unit,
 }
 
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
+#[allow(non_camel_case_types)]
+pub struct tEXt {
+    pub keyword: String,
+    pub text: String,
+}
+
 /// The iTXt chunk contains utf8 text
 #[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
@@ -165,12 +172,14 @@ pub struct iCCP {
 
 /// Ancillary chunks are those that are not necessary to render the image
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[allow(non_snake_case)]
 pub struct AncillaryChunks {
     pub phys: Option<pHYs>,
     pub itxt: Vec<Option<iTXt>>,
     pub gama: Option<gAMA>,
     pub chrm: Option<cHRM>,
     pub iccp: Option<iCCP>,
+    pub tEXt: Vec<Option<tEXt>>,
 }
 
 impl AncillaryChunks {
@@ -181,6 +190,7 @@ impl AncillaryChunks {
             gama: None,
             chrm: None,
             iccp: None,
+            tEXt: Vec::new(),
         }
     }
 }

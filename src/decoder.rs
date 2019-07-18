@@ -1,7 +1,7 @@
 use std::{str};
 use std::vec::Vec;
 
-use crate::chunks::{IHDR, PLTE, UnrecognizedChunk, pHYs, iTXt, gAMA, cHRM, iCCP, PaletteEntry, AncillaryChunks};
+use crate::chunks::{IHDR, PLTE, UnrecognizedChunk, pHYs, tEXt, iTXt, bKGD, gAMA, cHRM, iCCP, PaletteEntry, AncillaryChunks};
 use crate::common::{get_bit_at, BitDepth, ColorType, CompressionType, Unit};
 use crate::filter::{FilterMethod};
 use crate::interlacing::{Interlacing};
@@ -123,6 +123,27 @@ impl PNGDecoder {
                         unit: Unit::from_u8(unit)?
                     });
                 },
+                "tEXt" => {
+                    let mut keyword_buffer: Vec<u8> = Vec::new();
+                    let keyword_len = f.read_until(b'\0', &mut keyword_buffer)?;
+
+                    let remaining_length = length
+                                            - (keyword_len as u32);
+
+                    let mut text_buffer: Vec<u8> = vec!(0; remaining_length as usize);
+                    f.read_exact(&mut text_buffer)?;
+
+                    // the null byte is included in `read_until()`
+                    keyword_buffer.pop();
+
+                    let keyword = if let Ok(k) = String::from_utf8(keyword_buffer) { k } else { continue };
+                    let text = if let Ok(t) = String::from_utf8(text_buffer) { t } else { continue };
+                    
+                    ancillary_chunks.tEXt.push(Some(tEXt {
+                        keyword, text
+                    }));
+
+                },
                 "iTXt" => {
                     let mut keyword_buffer: Vec<u8> = Vec::new();
                     let mut compressed_buffer = [0];
@@ -144,6 +165,11 @@ impl PNGDecoder {
                     
                     let mut text_buffer: Vec<u8> = vec!(0; remaining_length as usize);
                     f.read_exact(&mut text_buffer)?;
+
+                    // the null byte is included in `read_until()`
+                    keyword_buffer.pop();
+                    language_tag_buffer.pop();
+                    translated_keyword_buffer.pop();
 
                     let keyword = if let Ok(k) = String::from_utf8(keyword_buffer) { k } else { continue };
                     let compressed = u8::from_be_bytes(compressed_buffer) != 0;
