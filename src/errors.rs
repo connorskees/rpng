@@ -30,7 +30,7 @@ pub enum MetadataError {
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum FilterError {
-    UnrecognizedFilterMethod(u8),
+    UnrecognizedFilterMethod(u16),
     UnrecognizedFilterType(u8),
 }
 
