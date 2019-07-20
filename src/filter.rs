@@ -47,6 +47,13 @@ impl FilterMethod {
     pub fn from_u8(val: u8) -> Result<Self, FilterError> {
         match val {
             0 => Ok(Self::Adaptive),
+            _ => Err(FilterError::UnrecognizedFilterMethod(u16::from(val)))
+        }
+    }
+
+    pub fn from_u16(val: u16) -> Result<Self, FilterError> {
+        match val {
+            0 => Ok(Self::Adaptive),
             _ => Err(FilterError::UnrecognizedFilterMethod(val))
         }
     }
