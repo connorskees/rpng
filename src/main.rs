@@ -13,7 +13,7 @@ use flate2::bufread::ZlibDecoder;
 // use serde_json;
 
 use chunks::{IHDR, PLTE, UnrecognizedChunk, AncillaryChunks};
-pub use common::{BitDepth, ColorType, CompressionType, Unit};
+pub use common::{Bitmap, BitDepth, ColorType, CompressionType, Unit};
 pub use filter::{FilterMethod, FilterType};
 pub use interlacing::{Interlacing};
 pub use errors::PNGDecodingError;
@@ -25,8 +25,6 @@ mod errors;
 pub mod chunks;
 mod filter;
 mod interlacing;
-
-type Bitmap = Vec<Vec<Vec<u8>>>;
 
 const FILE_NAME: &str = "redrect";
 
@@ -58,16 +56,18 @@ impl PNG {
             return Err(PNGDecodingError::ZeroLengthIDAT("no pixel data provided"));
         }
 
-        let mut rows: Bitmap = Vec::new();
-        let chunk_length: u8 = self.ihdr.color_type.channels();
-        if self.ihdr.bit_depth.as_u8() < 8 {
+
+        let mut buf: Vec<Vec<Vec<u8>>> = Vec::new();
 
         }
-        println!("raw buf len {:?}", buffer.len());
+        let mut rows: Vec<Vec<Vec<u8>>> = Vec::new();
+        let chunk_length: u8 = self.ihdr.color_type.channels();
+
+        // 1 is added to account for filter method byte
         let row_length = 1 + (((f32::from(self.ihdr.bit_depth.as_u8()) /8f32) * self.ihdr.width as f32).ceil() as u32 * (u32::from(chunk_length)));
         println!("row length {}", row_length);
-        let filtered_rows: Vec<&[u8]> = buffer.chunks(row_length as usize).collect::<Vec<&[u8]>>();
-        // println!("buffer {:?}", filtered_rows);
+        let filtered_rows: Vec<Vec<u8>> = buffer.chunks(row_length as usize).map(Vec::from).collect::<Vec<Vec<u8>>>();
+
         println!("num of rows {}", filtered_rows.len());
         for (idx, row) in filtered_rows.iter().enumerate() {
             println!("{:?}", row);
@@ -79,8 +79,17 @@ impl PNG {
                 FilterType::Paeth => filter::paeth(&row[1..], if idx == 0 { None } else { Some(&rows[idx-1]) }, chunk_length, true),
             });
         }
-        // println!("rows {:?}", rows);
-        Ok(rows)
+
+        if self.ihdr.color_type == ColorType::Indexed {
+            let palette = match &self.plte {
+                Some(plte) => plte,
+                // a PNG cannot have an indexed color type without the plte chunk
+                _ => unreachable!(),
+            };
+            rows = rows.iter().map(|x| x.iter().map(|y| palette[y[0]].to_vec()).collect()).collect();
+        }
+
+        Ok(Bitmap::new(rows)?)
     }
 
     pub fn dimensions(&self) -> [u32; 2] {

@@ -94,13 +94,23 @@ pub struct PaletteEntry {
 }
 
 impl PaletteEntry {
-    pub fn from_u8(val: &[u8]) -> Self {
-        Self {
+    pub fn from_u8(val: &[u8]) -> PaletteEntry {
+        PaletteEntry {
             red: val[0],
             green: val[1],
             blue: val[2],
         }
     }
+
+    /// Return the RGB value as a vector
+    pub fn to_vec(&self) -> Vec<u8> {
+        vec!(self.red, self.green, self.blue)
+    }
+
+    /// Return the RGB value as an array [u8; 3]
+    pub fn to_array(&self) -> [u8; 3] {
+        [self.red, self.green, self.blue]
+    }   
 }
 
 /// The PLTE chunk contains a list of palette entries
@@ -115,6 +125,13 @@ impl fmt::Debug for PLTE {
     }
 }
 
+impl Index<u8> for PLTE {
+    type Output = PaletteEntry;
+
+    fn index(&self, index: u8) -> &Self::Output {
+        &self.entries[usize::from(index)]
+    }
+}
 /// The pHYs chunk contains information about the aspect ratio
 #[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
