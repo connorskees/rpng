@@ -3,9 +3,14 @@ name = "rpng"
 version = "0.1.0"
 authors = ["ConnorSkees <39542938+ConnorSkees@users.noreply.github.com>"]
 edition = "2018"
+description = "A library for encoding and decoding PNG files"
+keywords = ["PNG", "image"]
+categories = ["multimedia::images", "multimedia::encoding"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 flate2 = { version = "1.0", features = ["zlib"], default-features = false }
-serde_json = "1.0"
+serde_json = "1.0.40"
+
+[dev-dependencies]
