@@ -6,6 +6,8 @@
 use std::io::{BufReader};
 use std::io::prelude::*;
 use std::fs::File;
+use std::path::Path;
+use std::convert::AsRef;
 use std::{fmt, fs, str};
 use std::vec::Vec;
 
@@ -48,7 +50,12 @@ impl fmt::Debug for PNG {
 }
 
 impl PNG {
-    pub fn pixels(&self) -> Result<Bitmap, PNGDecodingError> {
+    pub fn from_path<S: AsRef<Path>>(file_path: S) -> Result<Self, PNGDecodingError> {
+        let file_size: usize = fs::metadata(&file_path)?.len() as usize;
+        PNGDecoder::read(BufReader::with_capacity(file_size, File::open(file_path)?))
+    }
+
+    pub fn pixels(&self) -> Result<Bitmap<u8>, PNGDecodingError> {
         let mut buffer: Vec<u8> = Vec::new();
         let mut zlib = ZlibDecoder::new(&self.idat as &[u8]);
         let buf_len = zlib.read_to_end(&mut buffer)?;
