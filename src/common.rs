@@ -1,8 +1,9 @@
 use crate::errors::MetadataError;
 
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(u8)]
 pub enum BitDepth {
+    /// Colors are represented by a single bit. Black or white
     One = 1,
     Two = 2,
     Four = 4,

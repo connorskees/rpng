@@ -60,7 +60,7 @@ impl PNG {
         let mut zlib = ZlibDecoder::new(&self.idat as &[u8]);
         let buf_len = zlib.read_to_end(&mut buffer)?;
         if buf_len == 0 {
-            return Err(PNGDecodingError::ZeroLengthIDAT("no pixel data provided"));
+            return Err(PNGDecodingError::ZeroLengthIDAT);
         }
 
 

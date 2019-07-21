@@ -2,7 +2,7 @@ use std::fmt;
 use crate::common::{BitDepth, ColorType, CompressionType, Unit};
 use crate::filter::{FilterMethod};
 use crate::interlacing::{Interlacing};
-use crate::errors::MetadataError;
+use crate::errors::{ChunkError, MetadataError};
 
 /// The IHDR chunk contains important metadata for reading the image
 #[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
@@ -29,12 +29,12 @@ impl IHDR {
 
         if !(0 < width && width < 2u32.pow(31)) {
             // between 0 and 2^31
-            return Err(MetadataError::InvalidWidth{ width });
+            return Err(MetadataError::InvalidWidth{ width: width as usize });
         }
         
         if !(0 < height && height < 2u32.pow(31)) {
             // between 0 and 2^31
-            return Err(MetadataError::InvalidHeight{ height });
+            return Err(MetadataError::InvalidHeight{ height: height as usize });
         }
 
         match color_type {
@@ -126,12 +126,12 @@ impl From<[u16; 3]> for PaletteEntry {
 
 impl PaletteEntry {
     /// Return the RGB value as a vector
-    pub fn to_vec(&self) -> Vec<u16> {
+    pub fn to_vec(self) -> Vec<u16> {
         vec!(self.red, self.green, self.blue)
     }
 
     /// Return the RGB value as an array [u8; 3]
-    pub fn to_array(&self) -> [u16; 3] {
+    pub fn to_array(self) -> [u16; 3] {
         [self.red, self.green, self.blue]
     }   
 }
@@ -164,6 +164,7 @@ pub struct pHYs {
     pub unit: Unit,
 }
 
+/// The tEXt chunk contains uncompressed, Latin-1 encoded textual information
 #[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub struct tEXt {
@@ -171,7 +172,7 @@ pub struct tEXt {
     pub text: String,
 }
 
-/// The iTXt chunk contains utf8 text
+/// The iTXt chunk contains optionally compressed, utf8 text
 #[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub struct iTXt {
