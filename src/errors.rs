@@ -1,6 +1,7 @@
 use std::{fmt, io};
 use crate::common::{BitDepth, ColorType};
 
+/// Container for errors that can occur when decoding a PNG
 #[derive(Debug)]
 pub enum PNGDecodingError {
     InvalidHeader{found: [u8; 8], expected: [u8; 8]},
@@ -8,7 +9,7 @@ pub enum PNGDecodingError {
     MetadataError(MetadataError),
     FilterError(FilterError),
     IoError(io::Error),
-    ZeroLengthIDAT(&'static str),
+    ZeroLengthIDAT,
     StringDecodeError(std::str::Utf8Error),
     ChunkError(ChunkError),
 }
@@ -60,10 +61,57 @@ pub enum MetadataError {
     InvalidBitDepthForColorType{ bit_depth: BitDepth, color_type: ColorType }
 }
 
+impl fmt::Display for MetadataError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use MetadataError::*;
+        match self {
+            UnrecognizedBitDepth{ bit_depth } => {
+                write!(f, "Expected bit depth in [1, 2, 4, 8, 16], but found {}", bit_depth)
+            },
+            UnrecognizedCompressionType{ compression_type } => {
+                write!(f, "Expected compression type in [0, 1], but found {}", compression_type)
+            },
+            UnrecognizedUnit{ unit } => {
+                write!(f, "Expected unit in [0, 1], but found {}", unit)
+            },
+            UnrecognizedColorType{ color_type } => {
+                write!(f, "Expected color type in [0, 2, 3, 4, 6], but found {}", color_type)
+            },
+            UnrecognizedInterlacingType{ interlacing_type } => {
+                write!(f, "Expected interlacing type in [0, 1], but found {}", interlacing_type)
+            },
+            InvalidWidth{ width } => {
+                write!(f, "Expected width in 1..=2**31, but found {}", width)
+            },
+            InvalidHeight{ height } => {
+                write!(f, "Expected height in 1..=2**31, but found {}", height)
+            },
+            InvalidBitDepthForColorType{ bit_depth, color_type } => {
+                write!(f, "Found incompatible bit depth and color type combination: bit_depth: {:?} - color_type: {:?}", bit_depth, color_type)
+            },
+        }
+    }
+}
+
+/// Errors related to filtering
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum FilterError {
     UnrecognizedFilterMethod(u16),
     UnrecognizedFilterType(u8),
+}
+
+impl fmt::Display for FilterError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use FilterError::*;
+        match self {
+            UnrecognizedFilterMethod(val) => {
+                write!(f, "Expected value in 0..=4, but found {}", val)
+            },
+            UnrecognizedFilterType(val) => {
+                write!(f, "Expected value of 0, but found {}", val)
+            },
+        }
+    }
 }
 
 impl fmt::Display for PNGDecodingError {
@@ -76,14 +124,27 @@ impl fmt::Display for PNGDecodingError {
             InvalidIHDRLength(len) => {
                 write!(f, "Expected 13, but found {}", len)
             },
-            UnrecognizedCriticalChunk(name) => {
-                write!(f, "Found unrecognized critical chunk '{}'", name)
+            MetadataError(err) => {
+                write!(f, "{}", err)
             },
-
-impl std::convert::From<io::Error> for PNGDecodingError {
-    fn from(error: io::Error) -> Self {
-        PNGDecodingError::IoError(error)
+            FilterError(err) => {
+                write!(f, "{}", err)
+            },
+            IoError(err) => {
+                write!(f, "{}", err)
+            },
+            ZeroLengthIDAT => {
+                write!(f, "no pixel data provided")
+            },
+            StringDecodeError(err) => {
+                write!(f, "{}", err)
+            },
+            ChunkError(err) => {
+                write!(f, "{}", err)
+            }
+        }
     }
+
 }
 
 macro_rules! convert_to_decoding_error {
