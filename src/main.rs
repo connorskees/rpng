@@ -55,7 +55,7 @@ impl PNG {
         PNGDecoder::read(BufReader::with_capacity(file_size, File::open(file_path)?))
     }
 
-    pub fn pixels(&self) -> Result<Bitmap<u8>, PNGDecodingError> {
+    pub fn pixels(&self) -> Result<Bitmap<u16>, PNGDecodingError> {
         let mut buffer: Vec<u8> = Vec::new();
         let mut zlib = ZlibDecoder::new(&self.idat as &[u8]);
         let buf_len = zlib.read_to_end(&mut buffer)?;
@@ -87,16 +87,24 @@ impl PNG {
             });
         }
 
+        let row16: Vec<Vec<Vec<u16>>>;
+
         if self.ihdr.color_type == ColorType::Indexed {
             let palette = match &self.plte {
                 Some(plte) => plte,
                 // a PNG cannot have an indexed color type without the plte chunk
                 _ => unreachable!(),
             };
-            rows = rows.iter().map(|x| x.iter().map(|y| palette[y[0]].to_vec()).collect()).collect();
+            Ok(Bitmap::new(rows.iter().map(|x| x.iter().map(|y| palette[y[0]].to_vec()).collect()).collect())?)
+        } else if self.ihdr.bit_depth == BitDepth::Sixteen {
+            unimplemented!()
+        } else {
+            // convert Vec<Vec<Vec<u8>>> to Vec<Vec<Vec<u16>>>
+            // TODO: Find a better solution than 3 nested `map`s
+            row16 = rows.iter().map(|x| x.iter().map(|y| y.iter().map(|z| u16::from(*z)).collect()).collect()).collect();
+            Ok(Bitmap::new(row16)?)
         }
 
-        Ok(Bitmap::new(rows)?)
     }
 
     pub fn dimensions(&self) -> [u32; 2] {

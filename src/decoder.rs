@@ -88,7 +88,7 @@ impl PNGDecoder {
                     let mut entries_buffer: Vec<u8> = vec!(0; length as usize);
                     f.read_exact(&mut entries_buffer)?;
                     let entries_: Vec<&[u8]> = entries_buffer.chunks(3).collect();
-                    let entries: Vec<PaletteEntry> =  entries_.iter().map(|x| PaletteEntry::from_u8(x)).collect();
+                    let entries: Vec<PaletteEntry> =  entries_.iter().map(|x| PaletteEntry::from(*x)).collect();
 
                     plte = Some(PLTE {
                         entries

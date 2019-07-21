@@ -88,27 +88,50 @@ impl fmt::Debug for UnrecognizedChunk {
 
 #[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct PaletteEntry {
-    pub red: u8,
-    pub green: u8,
-    pub blue: u8,
+    pub red: u16,
+    pub green: u16,
+    pub blue: u16,
 }
 
-impl PaletteEntry {
-    pub fn from_u8(val: &[u8]) -> PaletteEntry {
+impl From<&[u8]> for PaletteEntry {
+    fn from(val: &[u8]) -> Self {
+        PaletteEntry {
+            red: u16::from(val[0]),
+            green: u16::from(val[1]),
+            blue: u16::from(val[2]),
+        }
+    }
+}
+
+impl From<[u8; 3]> for PaletteEntry {
+    fn from(val: [u8; 3]) -> Self {
+        PaletteEntry {
+            red: u16::from(val[0]),
+            green: u16::from(val[1]),
+            blue: u16::from(val[2]),
+        }
+    }
+}
+
+impl From<[u16; 3]> for PaletteEntry {
+    fn from(val: [u16; 3]) -> Self {
         PaletteEntry {
             red: val[0],
             green: val[1],
             blue: val[2],
         }
     }
+}
 
+
+impl PaletteEntry {
     /// Return the RGB value as a vector
-    pub fn to_vec(&self) -> Vec<u8> {
+    pub fn to_vec(&self) -> Vec<u16> {
         vec!(self.red, self.green, self.blue)
     }
 
     /// Return the RGB value as an array [u8; 3]
-    pub fn to_array(&self) -> [u8; 3] {
+    pub fn to_array(&self) -> [u16; 3] {
         [self.red, self.green, self.blue]
     }   
 }
