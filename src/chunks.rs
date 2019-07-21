@@ -274,7 +274,7 @@ impl bKGD {
             bKGD::RGB{ red, green, blue } => {
                 [red, green, blue]
             },
-            bKGD::Palette{ palette_index: _, rgb } => {
+            bKGD::Palette{ rgb, .. } => {
                 rgb.to_array()
             }
         }

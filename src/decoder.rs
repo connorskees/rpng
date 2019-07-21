@@ -79,11 +79,11 @@ impl PNGDecoder {
                 },
                 "PLTE" => {
                     if length % 3 != 0 {
-                        return Err(ChunkError::InvalidPLTELength)?
+                        return Err(ChunkError::InvalidPLTELength.into())
                     }
                     match ihdr.color_type {
                         ColorType::Indexed | ColorType::RGB | ColorType::RGBA => {},
-                        ColorType::Grayscale | ColorType:: GrayscaleAlpha => return Err(ChunkError::UnexpectedPLTEChunk)?,
+                        ColorType::Grayscale | ColorType:: GrayscaleAlpha => return Err(ChunkError::UnexpectedPLTEChunk.into()),
                     }
                     let mut entries_buffer: Vec<u8> = vec!(0; length as usize);
                     f.read_exact(&mut entries_buffer)?;
@@ -176,7 +176,13 @@ impl PNGDecoder {
                     let compression_method = if compressed { Some(CompressionType::from_u8(u8::from_be_bytes(compression_method_buffer))?) } else { None };
                     let language_tag = if let Ok(lt) = String::from_utf8(language_tag_buffer) { lt } else { continue };
                     let translated_keyword = if let Ok(tk) = String::from_utf8(translated_keyword_buffer) { tk } else { continue };
-                    let text = if let Ok(t) = String::from_utf8(text_buffer) { t } else { continue };
+                    let text = if compressed {
+                        unimplemented!()
+                    } else if let Ok(t) = String::from_utf8(text_buffer) {
+                        t 
+                    } else {
+                        continue
+                    };
 
                     let itxt = iTXt {
                         keyword,
@@ -219,7 +225,7 @@ impl PNGDecoder {
                 }
                 "gAMA" => {
                     if length != 4 {
-                        return Err(ChunkError::InvalidgAMALength)?;
+                        return Err(ChunkError::InvalidgAMALength.into());
                     }
                     let mut gamma_buffer = [0; 4];
                     f.read_exact(&mut gamma_buffer)?;
@@ -374,7 +380,7 @@ impl PNGDecoder {
                     let is_public = get_bit_at(chunk_type_buffer[1], 5).unwrap() == 0;
                     let is_safe_to_copy = get_bit_at(chunk_type_buffer[2], 5).unwrap() == 1;
                     if is_critical {
-                        return Err(ChunkError::UnrecognizedCriticalChunk(chunk_type.into()))?;
+                        return Err(ChunkError::UnrecognizedCriticalChunk(chunk_type.into()).into());
                     }
                     let mut buffer: Vec<u8> = vec!(0; length as usize);
                     f.read_exact(&mut buffer)?;

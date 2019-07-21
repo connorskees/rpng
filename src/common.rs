@@ -2,14 +2,19 @@ use std::ops::Index;
 
 use crate::errors::MetadataError;
 
+/// Number of bits per color channel
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(u8)]
 pub enum BitDepth {
     /// Colors are represented by a single bit. Black or white
     One = 1,
+    /// Color channels can be 0-4
     Two = 2,
+    /// Color channels can be 0-16
     Four = 4,
+    /// Color channels can be 0-256
     Eight = 8,
+    /// Color channels can be 0-65_536
     Sixteen = 16,
 }
 
@@ -45,6 +50,7 @@ impl std::default::Default for BitDepth {
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 #[repr(u8)]
 pub enum CompressionType {
+    /// zlib DEFLATE compression
     Deflate = 0,
 }
 

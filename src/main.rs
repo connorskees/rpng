@@ -32,11 +32,11 @@ const FILE_NAME: &str = "redrect";
 
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct PNG {
-    ihdr: IHDR,
-    plte: Option<PLTE>,
-    idat: Vec<u8>,
-    unrecognized_chunks: Vec<UnrecognizedChunk>,
-    ancillary_chunks: AncillaryChunks,
+    pub ihdr: IHDR,
+    pub plte: Option<PLTE>,
+    pub idat: Vec<u8>,
+    pub unrecognized_chunks: Vec<UnrecognizedChunk>,
+    pub ancillary_chunks: AncillaryChunks,
 }
 
 impl fmt::Debug for PNG {
