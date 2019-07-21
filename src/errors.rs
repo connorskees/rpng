@@ -5,17 +5,49 @@ use crate::common::{BitDepth, ColorType};
 pub enum PNGDecodingError {
     InvalidHeader{found: [u8; 8], expected: [u8; 8]},
     InvalidIHDRLength(u32),
-    UnrecognizedCriticalChunk(String),
     MetadataError(MetadataError),
     FilterError(FilterError),
-    UnexpectedPLTEChunk,
-    InvalidPLTELength,
-    InvalidgAMALength,
     IoError(io::Error),
     ZeroLengthIDAT(&'static str),
     StringDecodeError(std::str::Utf8Error),
+    ChunkError(ChunkError),
 }
 
+/// Errors dealing with critical and ancillary chunks
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub enum ChunkError {
+    UnexpectedPLTEChunk,
+    InvalidPLTELength,
+    InvalidgAMALength,
+    UnrecognizedCriticalChunk(String),
+    UnrecognizedsRGBValue(u8),
+}
+
+
+impl fmt::Display for ChunkError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use ChunkError::*;
+        match self {
+            UnrecognizedCriticalChunk(name) => {
+                write!(f, "Found unrecognized critical chunk '{}'", name)
+            },
+            UnexpectedPLTEChunk => {
+                write!(f, "Unexpected PLTE chunk found")
+            },
+            InvalidPLTELength => {
+                write!(f, "PLTE chunk length was not divisible by 3 (and so doesn't properly give RGB values)")
+            },
+            InvalidgAMALength => {
+                write!(f, "gAMA chunk length was not equal to 4")
+            },
+            UnrecognizedsRGBValue(val) => {
+                write!(f, "Found {}, but expected value in 0..=3", val)
+            }
+        }
+    }
+}
+
+/// Errors dealing with data that describe the PNG file
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum MetadataError {
     UnrecognizedBitDepth{ bit_depth: u8 },

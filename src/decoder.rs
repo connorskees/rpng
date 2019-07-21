@@ -5,7 +5,7 @@ use crate::chunks::{IHDR, PLTE, UnrecognizedChunk, pHYs, tEXt, iTXt, bKGD, gAMA,
 use crate::common::{get_bit_at, BitDepth, ColorType, CompressionType, Unit};
 use crate::filter::{FilterMethod};
 use crate::interlacing::{Interlacing};
-use crate::errors::PNGDecodingError;
+use crate::errors::{ChunkError, PNGDecodingError};
 use crate::PNG;
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
@@ -79,11 +79,11 @@ impl PNGDecoder {
                 },
                 "PLTE" => {
                     if length % 3 != 0 {
-                        return Err(PNGDecodingError::InvalidPLTELength)
+                        return Err(ChunkError::InvalidPLTELength)?
                     }
                     match ihdr.color_type {
                         ColorType::Indexed | ColorType::RGB | ColorType::RGBA => {},
-                        ColorType::Grayscale | ColorType:: GrayscaleAlpha => return Err(PNGDecodingError::UnexpectedPLTEChunk),
+                        ColorType::Grayscale | ColorType:: GrayscaleAlpha => return Err(ChunkError::UnexpectedPLTEChunk)?,
                     }
                     let mut entries_buffer: Vec<u8> = vec!(0; length as usize);
                     f.read_exact(&mut entries_buffer)?;
@@ -218,7 +218,7 @@ impl PNGDecoder {
                 }
                 "gAMA" => {
                     if length != 4 {
-                        return Err(PNGDecodingError::InvalidgAMALength);
+                        return Err(ChunkError::InvalidgAMALength)?;
                     }
                     let mut gamma_buffer = [0; 4];
                     f.read_exact(&mut gamma_buffer)?;
@@ -368,7 +368,7 @@ impl PNGDecoder {
                     let is_public = get_bit_at(chunk_type_buffer[1], 5).unwrap() == 0;
                     let is_safe_to_copy = get_bit_at(chunk_type_buffer[2], 5).unwrap() == 1;
                     if is_critical {
-                        return Err(PNGDecodingError::UnrecognizedCriticalChunk(chunk_type.into()));
+                        return Err(ChunkError::UnrecognizedCriticalChunk(chunk_type.into()))?;
                     }
                     let mut buffer: Vec<u8> = vec!(0; length as usize);
                     f.read_exact(&mut buffer)?;
