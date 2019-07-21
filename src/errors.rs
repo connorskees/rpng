@@ -1,11 +1,11 @@
-use std::io;
+use std::{fmt, io};
 use crate::common::{BitDepth, ColorType};
 
 #[derive(Debug)]
 pub enum PNGDecodingError {
-    InvalidHeader([u8; 8], &'static str),
+    InvalidHeader{found: [u8; 8], expected: [u8; 8]},
     InvalidIHDRLength(u32),
-    UnrecognizedCriticalChunk,
+    UnrecognizedCriticalChunk(String),
     MetadataError(MetadataError),
     FilterError(FilterError),
     UnexpectedPLTEChunk,
@@ -23,8 +23,8 @@ pub enum MetadataError {
     UnrecognizedUnit{ unit: u8 },
     UnrecognizedColorType{ color_type: u8 },
     UnrecognizedInterlacingType{ interlacing_type: u8 },
-    InvalidWidth{ width: u32 },
-    InvalidHeight{ height: u32 },
+    InvalidWidth{ width: usize },
+    InvalidHeight{ height: usize },
     InvalidBitDepthForColorType{ bit_depth: BitDepth, color_type: ColorType }
 }
 
@@ -34,8 +34,19 @@ pub enum FilterError {
     UnrecognizedFilterType(u8),
 }
 
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
-pub enum ChunkError {}
+impl fmt::Display for PNGDecodingError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use PNGDecodingError::*;
+        match self {
+            InvalidHeader{found, expected} => {
+                write!(f, "Expected bytes {:?}, but found {:?}", expected, found)
+            },
+            InvalidIHDRLength(len) => {
+                write!(f, "Expected 13, but found {}", len)
+            },
+            UnrecognizedCriticalChunk(name) => {
+                write!(f, "Found unrecognized critical chunk '{}'", name)
+            },
 
 impl std::convert::From<io::Error> for PNGDecodingError {
     fn from(error: io::Error) -> Self {

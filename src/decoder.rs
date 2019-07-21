@@ -22,7 +22,7 @@ impl PNGDecoder {
 
         f.read_exact(&mut header)?;
         if header != [137u8, 80, 78, 71, 13, 10, 26, 10] {
-            return Err(PNGDecodingError::InvalidHeader(header, "expected [137, 80, 78, 71, 13, 10, 26, 10]"));
+            return Err(PNGDecodingError::InvalidHeader{found: header, expected: [137, 80, 78, 71, 13, 10, 26, 10]});
         }
 
         loop {
@@ -293,14 +293,14 @@ impl PNGDecoder {
                     });
                 }
                 _ => {
-                    let mut buffer: Vec<u8> = vec!(0; length as usize);
-                    f.read_exact(&mut buffer)?;
                     let is_critical = get_bit_at(chunk_type_buffer[0], 5).unwrap() == 0;
                     let is_public = get_bit_at(chunk_type_buffer[1], 5).unwrap() == 0;
                     let is_safe_to_copy = get_bit_at(chunk_type_buffer[2], 5).unwrap() == 1;
                     if is_critical {
-                        return Err(PNGDecodingError::UnrecognizedCriticalChunk);
+                        return Err(PNGDecodingError::UnrecognizedCriticalChunk(chunk_type.into()));
                     }
+                    let mut buffer: Vec<u8> = vec!(0; length as usize);
+                    f.read_exact(&mut buffer)?;
                     unrecognized_chunks.push(UnrecognizedChunk {
                         length,
                         chunk_type: String::from(chunk_type),
