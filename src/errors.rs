@@ -86,15 +86,23 @@ impl std::convert::From<io::Error> for PNGDecodingError {
     }
 }
 
-impl std::convert::From<FilterError> for PNGDecodingError {
-    fn from(error: FilterError) -> Self {
-        PNGDecodingError::FilterError(error)
-    }
+macro_rules! convert_to_decoding_error {
+    ($val:ident) => (
+        impl std::convert::From<$val> for PNGDecodingError {
+            fn from(error: $val) -> Self {
+                PNGDecodingError::$val(error)
+            }
+        }
+    )
 }
 
-impl std::convert::From<MetadataError> for PNGDecodingError {
-    fn from(error: MetadataError) -> Self {
-        PNGDecodingError::MetadataError(error)
+convert_to_decoding_error!(FilterError);
+convert_to_decoding_error!(MetadataError);
+convert_to_decoding_error!(ChunkError);
+
+impl std::convert::From<io::Error> for PNGDecodingError {
+    fn from(error: io::Error) -> Self {
+        PNGDecodingError::IoError(error)
     }
 }
 
