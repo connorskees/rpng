@@ -212,7 +212,8 @@ impl PNGDecoder {
                             let mut palette_index_buffer = [0];
                             f.read_exact(&mut palette_index_buffer)?;
                             let palette_index = u8::from_be_bytes(palette_index_buffer);
-                            ancillary_chunks.bKGD = Some(bKGD::Palette{ palette_index });
+                            let rgb = if let Some(p) = plte.clone() { p } else { unreachable!() };
+                            ancillary_chunks.bKGD = Some(bKGD::Palette{ palette_index, rgb: rgb[palette_index] });
                         }
                     }
                 }

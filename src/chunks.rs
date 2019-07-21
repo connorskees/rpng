@@ -1,4 +1,6 @@
 use std::fmt;
+use std::ops::Index;
+
 use crate::common::{BitDepth, ColorType, CompressionType, Unit};
 use crate::filter::{FilterMethod};
 use crate::interlacing::{Interlacing};
@@ -260,7 +262,23 @@ impl sRGB {
 pub enum bKGD {
     Grayscale{grayscale: u16},
     RGB{red: u16, green: u16, blue: u16},
-    Palette{palette_index: u8},
+    Palette{palette_index: u8, rgb: PaletteEntry},
+}
+
+impl bKGD {
+    pub fn rgb(self) -> [u16; 3] {
+        match self {
+            bKGD::Grayscale{ grayscale } => {
+                [grayscale, grayscale, grayscale]
+            },
+            bKGD::RGB{ red, green, blue } => {
+                [red, green, blue]
+            },
+            bKGD::Palette{ palette_index: _, rgb } => {
+                rgb.to_array()
+            }
+        }
+    }
 }
 
 /// Ancillary chunks are those that are not necessary to render the image
