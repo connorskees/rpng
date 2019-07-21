@@ -210,6 +210,17 @@ pub struct iCCP {
     pub compressed_profile: Vec<u8>,
 }
 
+/// Contains the number of significant bits.
+/// It is useful for scaling color precision
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[allow(non_camel_case_types)]
+pub enum sBIT {
+    Grayscale{grayscale: u8},
+    RGB{red: u8, green: u8, blue: u8},
+    Indexed{red: u8, green: u8, blue: u8},
+    GrayscaleAlpha{grayscale: u8, alpha: u8},
+    RGBA{red: u8, green: u8, blue: u8, alpha: u8},
+}
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub enum bKGD {
@@ -229,11 +240,12 @@ pub struct AncillaryChunks {
     pub iccp: Option<iCCP>,
     pub tEXt: Vec<Option<tEXt>>,
     pub bKGD: Option<bKGD>,
+    pub sBIT: Option<sBIT>,
 }
 
 impl AncillaryChunks {
-    pub fn new() -> Self {
-        Self {
+    pub fn new() -> AncillaryChunks {
+        AncillaryChunks {
             phys: None,
             itxt: Vec::new(),
             gama: None,
@@ -241,6 +253,7 @@ impl AncillaryChunks {
             iccp: None,
             tEXt: Vec::new(),
             bKGD: None,
+            sBIT: None,
         }
     }
 }

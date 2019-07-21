@@ -1,7 +1,7 @@
 use std::{str};
 use std::vec::Vec;
 
-use crate::chunks::{IHDR, PLTE, UnrecognizedChunk, pHYs, tEXt, iTXt, bKGD, gAMA, cHRM, iCCP, PaletteEntry, AncillaryChunks};
+use crate::chunks::{IHDR, PLTE, UnrecognizedChunk, pHYs, tEXt, iTXt, bKGD, gAMA, cHRM, iCCP, sBIT, PaletteEntry, AncillaryChunks};
 use crate::common::{get_bit_at, BitDepth, ColorType, CompressionType, Unit};
 use crate::filter::{FilterMethod};
 use crate::interlacing::{Interlacing};
@@ -291,6 +291,77 @@ impl PNGDecoder {
                     ancillary_chunks.iccp = Some(iCCP {
                         profile_name, compression_method, compressed_profile,
                     });
+                },
+                "sBIT" => {
+                    ancillary_chunks.sBIT = match ihdr.color_type {
+                        ColorType::Grayscale => {
+                            let mut grayscale_buffer = [0];
+                            f.read_exact(&mut grayscale_buffer)?;
+                            let grayscale = u8::from_be_bytes(grayscale_buffer);
+                            Some(sBIT::Grayscale{ grayscale })
+                        },
+                        ColorType::RGB => {
+                            let mut red_buffer = [0];
+                            let mut green_buffer = [0];
+                            let mut blue_buffer = [0];
+                            
+                            f.read_exact(&mut red_buffer)?;
+                            f.read_exact(&mut green_buffer)?;
+                            f.read_exact(&mut blue_buffer)?;
+
+                            let red = u8::from_be_bytes(red_buffer);
+                            let green = u8::from_be_bytes(green_buffer);
+                            let blue = u8::from_be_bytes(blue_buffer);
+
+                            Some(sBIT::RGB{ red, green, blue })
+                        },
+                        ColorType::Indexed => {
+                            let mut red_buffer = [0];
+                            let mut green_buffer = [0];
+                            let mut blue_buffer = [0];
+                            
+                            f.read_exact(&mut red_buffer)?;
+                            f.read_exact(&mut green_buffer)?;
+                            f.read_exact(&mut blue_buffer)?;
+
+                            let red = u8::from_be_bytes(red_buffer);
+                            let green = u8::from_be_bytes(green_buffer);
+                            let blue = u8::from_be_bytes(blue_buffer);
+
+                            Some(sBIT::Indexed{ red, green, blue })
+                        },
+                        ColorType::GrayscaleAlpha => {
+                            let mut grayscale_buffer = [0];
+                            let mut alpha_buffer = [0];
+                            
+                            f.read_exact(&mut grayscale_buffer)?;
+                            f.read_exact(&mut alpha_buffer)?;
+                            
+                            let grayscale = u8::from_be_bytes(grayscale_buffer);
+                            let alpha = u8::from_be_bytes(alpha_buffer);
+                            
+                            Some(sBIT::GrayscaleAlpha{ grayscale, alpha })
+                        },
+                        ColorType::RGBA => {
+                            let mut red_buffer = [0];
+                            let mut green_buffer = [0];
+                            let mut blue_buffer = [0];
+                            let mut alpha_buffer = [0];
+                            
+                            f.read_exact(&mut red_buffer)?;
+                            f.read_exact(&mut green_buffer)?;
+                            f.read_exact(&mut blue_buffer)?;
+                            f.read_exact(&mut alpha_buffer)?;
+
+                            let red = u8::from_be_bytes(red_buffer);
+                            let green = u8::from_be_bytes(green_buffer);
+                            let blue = u8::from_be_bytes(blue_buffer);
+                            let alpha = u8::from_be_bytes(alpha_buffer);
+
+                            Some(sBIT::RGBA{ red, green, blue, alpha })
+                        },
+                    }
+                },
                 }
                 _ => {
                     let is_critical = get_bit_at(chunk_type_buffer[0], 5).unwrap() == 0;
