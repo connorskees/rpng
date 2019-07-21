@@ -1,7 +1,7 @@
 use std::{str};
 use std::vec::Vec;
 
-use crate::chunks::{IHDR, PLTE, UnrecognizedChunk, pHYs, tEXt, iTXt, bKGD, gAMA, cHRM, iCCP, sBIT, PaletteEntry, AncillaryChunks};
+use crate::chunks::{IHDR, PLTE, UnrecognizedChunk, pHYs, tEXt, iTXt, bKGD, gAMA, sRGB, cHRM, iCCP, sBIT, PaletteEntry, AncillaryChunks};
 use crate::common::{get_bit_at, BitDepth, ColorType, CompressionType, Unit};
 use crate::filter::{FilterMethod};
 use crate::interlacing::{Interlacing};
@@ -362,6 +362,11 @@ impl PNGDecoder {
                         },
                     }
                 },
+                "sRGB" => {
+                    let mut intent_buffer = [0];
+                    f.read_exact(&mut intent_buffer)?;
+
+                    ancillary_chunks.sRGB = Some(sRGB::from_u8(u8::from_be_bytes(intent_buffer))?);
                 }
                 _ => {
                     let is_critical = get_bit_at(chunk_type_buffer[0], 5).unwrap() == 0;
