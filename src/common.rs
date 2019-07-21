@@ -1,3 +1,5 @@
+use std::ops::Index;
+
 use crate::errors::MetadataError;
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
@@ -120,6 +122,46 @@ impl Unit {
             1 => Ok(Self::Meters),
             _ => Err(MetadataError::UnrecognizedUnit{ unit }),
         }
+    }
+}
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub struct Bitmap<T> {
+    pub rows: Vec<Vec<Vec<T>>>,
+    width: usize,
+    height: usize,
+}
+
+impl<T> Bitmap<T> {
+    pub fn new(rows: Vec<Vec<Vec<T>>>) -> Result<Bitmap<T>, MetadataError> {
+        if rows.is_empty() || rows.len() > 2usize.pow(31) {
+            return Err(MetadataError::InvalidHeight{ height: rows.len() });
+        }
+        Ok(Bitmap {
+            width: rows[0].len(),
+            height: rows.len(),
+            rows,
+        })
+    }
+
+    pub fn width(&self) -> usize {
+        self.width
+    }
+
+    pub fn height(&self) -> usize {
+        self.height
+    }
+
+    pub fn set_pixel(&mut self, x: usize, y: usize, pixel: Vec<T>) {
+        self.rows[y][x] = pixel;
+    }
+}
+
+impl<T> Index<[usize; 2]> for Bitmap<T> {
+    type Output = Vec<T>;
+
+    fn index(&self, index: [usize; 2]) -> &Self::Output {
+        &self.rows[index[1]][index[0]]
     }
 }
 
