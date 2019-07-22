@@ -67,13 +67,13 @@ impl std::default::Default for FilterMethod {
 
 pub fn sub(this_row: &[u8], chunk_size: u8, reverse: bool) -> Vec<Vec<u8>> {
     let mut chunks: Vec<Vec<u8>> = this_row.chunks(chunk_size as usize).map(Vec::from).collect();
-    for idx1 in 1..chunks.len() { // start at 1 because first pixel (0th) is initial
-        for idx2 in 0..chunks[idx1].len() {
-            let a = chunks[idx1-1][idx2];
+    for pixel_idx in 1..chunks.len() { // start at 1 because first pixel (0th) is unchanged
+        for rgba_idx in 0..chunks[pixel_idx].len() {
+            let a = chunks[pixel_idx-1][rgba_idx];
             if reverse {
-                chunks[idx1][idx2] = chunks[idx1][idx2].wrapping_add(a);
+                chunks[pixel_idx][rgba_idx] = chunks[pixel_idx][rgba_idx].wrapping_add(a);
             } else {
-                chunks[idx1][idx2] = chunks[idx1][idx2].wrapping_sub(a);
+                chunks[pixel_idx][rgba_idx] = chunks[pixel_idx][rgba_idx].wrapping_sub(a);
             }
         }
     }
@@ -83,13 +83,13 @@ pub fn sub(this_row: &[u8], chunk_size: u8, reverse: bool) -> Vec<Vec<u8>> {
 pub fn up(this_row: &[u8], row_above: Option<&Vec<Vec<u8>>>, chunk_size: u8, reverse: bool) -> Vec<Vec<u8>> {
     let mut this_row_chunks: Vec<Vec<u8>> = this_row.chunks(chunk_size as usize).map(Vec::from).collect();
     let row_above: &Vec<Vec<u8>> = if let Some(ra) = row_above { ra } else { return this_row_chunks };
-    for idx1 in 0..this_row_chunks.len() {
-        for idx2 in 0..this_row_chunks[idx1].len() {
-            let b = row_above[idx1][idx2];
+    for pixel_idx in 0..this_row_chunks.len() {
+        for rgba_idx in 0..this_row_chunks[pixel_idx].len() {
+            let b = row_above[pixel_idx][rgba_idx];
             if reverse {
-                this_row_chunks[idx1][idx2] = this_row_chunks[idx1][idx2].wrapping_add(b);
+                this_row_chunks[pixel_idx][rgba_idx] = this_row_chunks[pixel_idx][rgba_idx].wrapping_add(b);
             } else {
-                this_row_chunks[idx1][idx2] = this_row_chunks[idx1][idx2].wrapping_sub(b);
+                this_row_chunks[pixel_idx][rgba_idx] = this_row_chunks[pixel_idx][rgba_idx].wrapping_sub(b);
             }
         }
     }
@@ -98,7 +98,7 @@ pub fn up(this_row: &[u8], row_above: Option<&Vec<Vec<u8>>>, chunk_size: u8, rev
 
 pub fn average(this_row: &[u8], row_above: Option<&Vec<Vec<u8>>>, chunk_size: u8) -> Vec<Vec<u8>> {
     let mut this_row_chunks: Vec<Vec<u8>> = this_row.chunks(chunk_size as usize).map(Vec::from).collect();
-    for pixel_idx in 0..this_row_chunks.len() { // start at 1 because first pixel (0th) is initial
+    for pixel_idx in 0..this_row_chunks.len() {
         for rgba_idx in 0..this_row_chunks[pixel_idx].len() {
             let a = if pixel_idx == 0 { 0 } else { this_row_chunks[pixel_idx-1][rgba_idx] };
             let b: u8 = if let Some(val) = row_above { val[pixel_idx][rgba_idx] } else { 0 };
@@ -110,10 +110,10 @@ pub fn average(this_row: &[u8], row_above: Option<&Vec<Vec<u8>>>, chunk_size: u8
 
 pub fn paeth(this_row: &[u8], row_above: Option<&Vec<Vec<u8>>>, chunk_size: u8, reverse: bool) -> Vec<Vec<u8>> {
     let mut this_row_chunks: Vec<Vec<u8>> = this_row.chunks(chunk_size as usize).map(Vec::from).collect();
-    let is_first_row: bool = row_above == None;
+    let is_first_row: bool = row_above.is_none();
     let placeholder: &Vec<Vec<u8>> = &Vec::new();
     let above: &Vec<Vec<u8>> = if let Some(val) = row_above { val } else { placeholder };
-    for pixel_idx in 0..this_row_chunks.len() { // start at 1 because first pixel (0th) is initial
+    for pixel_idx in 0..this_row_chunks.len() {
         for rgba_idx in 0..this_row_chunks[pixel_idx].len() {
             let p: u8 = if pixel_idx == 0 {
                 // the first pixel has no neighbors to the left, so we treat `a` and `c` as 0
