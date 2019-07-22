@@ -133,3 +133,20 @@ fn main() -> Result<(), PNGDecodingError> {
     // println!("\n{:?}", pixels[0][0]);
     Ok(())
 }
+
+#[cfg(test)]
+#[allow(dead_code)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test() -> Result<(), PNGDecodingError> {
+        let png = PNG::from_path(r"C:\Users\Connor\Downloads\SF.LogoChop-transparent.png")?;
+        println!("{:?}", png);
+        let _pixels = png.pixels()?;
+        let mut f = File::create("fogkfkg.json")?;
+        f.write_all(serde_json::to_string(&_pixels.rows).unwrap().as_bytes())?;
+        Ok(())
+    }
+
+}
