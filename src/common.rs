@@ -19,6 +19,8 @@ pub enum BitDepth {
 }
 
 impl BitDepth {
+    /// Map BitDepth to its integer representation.
+    /// Returns Err(UnrecognizedBitDepth) on unknown depth
     pub fn from_u8(bit_depth: u8) -> Result<Self, MetadataError> {
         match bit_depth {
             1 =>  Ok(Self::One),
@@ -30,6 +32,7 @@ impl BitDepth {
         }
     }
 
+    /// Map BitDepth to its integer representation.
     pub fn as_u8(self) -> u8 {
         match self {
             Self::One => 1,
@@ -49,6 +52,8 @@ impl std::default::Default for BitDepth {
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 #[repr(u8)]
+/// Compression type used on IDAT chunks
+/// Currently, the only specified compression type is DEFLATE
 pub enum CompressionType {
     /// zlib DEFLATE compression
     Deflate = 0,
@@ -86,6 +91,8 @@ impl std::default::Default for ColorType {
 }
 
 impl ColorType {
+    /// Map ColorType to its integer representation.
+    /// Returns Err(UnrecognizedColorType) on unknown type
     pub fn from_u8(color_type: u8) -> Result<Self, MetadataError> {
         match color_type {
             0 => Ok(Self::Grayscale),
@@ -97,6 +104,8 @@ impl ColorType {
         }
     }
 
+    /// Number of unique channels per pixel: for example, RGB has 3 channels (red, green, and blue); while
+    /// grayscale has 1 channel (grayscale)
     pub fn channels(self) -> u8 {
         match self {
             Self::Grayscale => 1,
