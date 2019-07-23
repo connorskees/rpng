@@ -38,6 +38,9 @@ impl fmt::Display for ChunkError {
             InvalidPLTELength => {
                 write!(f, "PLTE chunk length was not divisible by 3 (and so doesn't properly give RGB values)")
             },
+            ICCPChunkNotFound => {
+                write!(f, "An ICC profile was not found")
+            },
             InvalidgAMALength => {
                 write!(f, "gAMA chunk length was not equal to 4")
             },

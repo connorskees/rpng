@@ -228,6 +228,11 @@ pub struct iCCP {
     pub compressed_profile: Vec<u8>,
 }
 
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
+pub struct ICCProfile {
+    icc_profile: Vec<u8>
+}
+
 /// Contains the number of significant bits.
 /// It is useful for scaling color precision
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]

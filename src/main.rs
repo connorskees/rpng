@@ -119,6 +119,18 @@ impl PNG {
     }
 }
 
+
+    pub fn iccp_profile(&self) -> Result<ICCProfile, PNGDecodingError> {
+        // let png = PNG::from_path(r"C:\Users\Connor\Documents\Fonts\Merry Christmas\merry-christmas_flag.png")?;
+        let iccp = match self.ancillary_chunks.iCCP.as_ref() {
+            Some(x) => x,
+            None => return Err(ChunkError::PLTEChunkNotFound.into())
+        };
+        let mut zlib = ZlibDecoder::new(iccp.compressed_profile.as_slice());
+        let mut buffer: Vec<u8> = Vec::new();
+        zlib.read_to_end(&mut buffer)?;
+        println!("{:?}", buffer.len());
+        unimplemented!()
     }
 
 
