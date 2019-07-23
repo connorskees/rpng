@@ -396,7 +396,6 @@ macro_rules! show_optional_chunk_mult {
 
 impl fmt::Display for AncillaryChunks {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        // unimplemented!()
         write!(
             f, "AncillaryChunks {{ {}{}{}{}{}{}{}{}{}\n    }}",
             show_optional_chunk!(self, phys),

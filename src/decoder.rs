@@ -33,7 +33,6 @@ impl PNGDecoder {
             let mut chunk_type_buffer: [u8; 4] = [0; 4];
             f.read_exact(&mut chunk_type_buffer)?;
             let chunk_type = str::from_utf8(&chunk_type_buffer)?;
-            println!("{:#?}", chunk_type);
 
             match chunk_type {
                 // Critical
