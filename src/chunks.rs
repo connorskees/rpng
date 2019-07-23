@@ -300,6 +300,25 @@ impl sRGB {
     }
 }
 
+#[derive(Clone, Hash, PartialEq, Eq)]
+#[allow(non_camel_case_types)]
+pub enum tRNS {
+    Grayscale{ grayscale: u16 },
+    RGB{ red: u16, green: u16, blue: u16 },
+    Indexed{ entries: Vec<u8> },
+}
+
+impl fmt::Debug for tRNS {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use tRNS::*;
+        match self {
+            Grayscale{ .. } => write!(f, "{:?}", self),
+            RGB{ .. } => write!(f, "{:?}", self),
+            Indexed{ entries } => write!(f, "tRNS {{ {} entries }}", entries.len())
+        }
+    }
+}
+
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub enum bKGD {
@@ -337,6 +356,7 @@ pub struct AncillaryChunks {
     pub bKGD: Option<bKGD>,
     pub sBIT: Option<sBIT>,
     pub sRGB: Option<sRGB>,
+    pub tRNS: Option<tRNS>,
 }
 
 impl AncillaryChunks {
@@ -351,6 +371,7 @@ impl AncillaryChunks {
             bKGD: None,
             sBIT: None,
             sRGB: None,
+            tRNS: None,
         }
     }
 }

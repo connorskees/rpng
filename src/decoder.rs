@@ -1,7 +1,7 @@
 use std::{str};
 use std::vec::Vec;
 
-use crate::chunks::{IHDR, PLTE, UnrecognizedChunk, pHYs, Unit, tEXt, iTXt, bKGD, gAMA, sRGB, cHRM, iCCP, sBIT, PaletteEntry, AncillaryChunks};
+use crate::chunks::{IHDR, PLTE, UnrecognizedChunk, pHYs, Unit, tEXt, iTXt, bKGD, tRNS, gAMA, sRGB, cHRM, iCCP, sBIT, PaletteEntry, AncillaryChunks};
 use crate::common::{get_bit_at, BitDepth, ColorType, CompressionType};
 use crate::filter::{FilterMethod};
 use crate::interlacing::{Interlacing};
@@ -94,6 +94,40 @@ impl PNGDecoder {
                         entries
                     });
                 },
+                "tRNS" => {
+                    match ihdr.color_type {
+                        ColorType::Grayscale => {
+                            let mut grayscale_buffer = [0; 2];
+                            f.read_exact(&mut grayscale_buffer)?;
+                            let grayscale = u16::from_be_bytes(grayscale_buffer);
+                            ancillary_chunks.tRNS = Some(tRNS::Grayscale{ grayscale });
+                        },
+                        ColorType::RGB => {
+                            let mut red_buffer = [0; 2];
+                            let mut green_buffer = [0; 2];
+                            let mut blue_buffer = [0; 2];
+
+                            f.read_exact(&mut red_buffer)?;
+                            f.read_exact(&mut green_buffer)?;
+                            f.read_exact(&mut blue_buffer)?;
+                            
+                            let red = u16::from_be_bytes(red_buffer);
+                            let green = u16::from_be_bytes(green_buffer);
+                            let blue = u16::from_be_bytes(blue_buffer);
+                            
+                            ancillary_chunks.tRNS = Some(tRNS::RGB{ red, green, blue });
+                        },
+                        ColorType::Indexed => {
+                            let mut entries: Vec<u8> = vec!(0; length as usize);
+                            f.read_exact(&mut entries)?;
+                            ancillary_chunks.tRNS = Some(tRNS::Indexed{ entries });
+                        },
+                        ColorType::RGBA | ColorType:: GrayscaleAlpha => unimplemented!(),
+                    }
+
+
+
+                }
                 "IDAT" => {
                     let mut v: Vec<u8> = vec!(0; length as usize);
                     f.read_exact(&mut v)?;
