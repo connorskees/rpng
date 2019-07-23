@@ -328,9 +328,9 @@ impl fmt::Debug for tRNS {
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub enum bKGD {
-    Grayscale{grayscale: u16},
-    RGB{red: u16, green: u16, blue: u16},
-    Palette{palette_index: u8, rgb: PaletteEntry},
+    Grayscale{ grayscale: u16 },
+    RGB{ red: u16, green: u16, blue: u16 },
+    Palette{ palette_index: u8, rgb: PaletteEntry },
 }
 
 impl bKGD {
