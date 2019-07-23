@@ -21,11 +21,11 @@ use flate2::bufread::ZlibDecoder;
 #[cfg(test)]
 use serde_json;
 
-use chunks::{IHDR, PLTE, UnrecognizedChunk, AncillaryChunks};
-pub use common::{Bitmap, BitDepth, ColorType, CompressionType, Unit};
+use chunks::{IHDR, PLTE, UnrecognizedChunk, AncillaryChunks, ICCProfile};
+pub use common::{get_bit_at, Bitmap, BitDepth, ColorType, CompressionType, Unit};
 pub use filter::{FilterMethod, FilterType};
 pub use interlacing::{Interlacing};
-pub use errors::PNGDecodingError;
+pub use errors::{PNGDecodingError, ChunkError};
 pub use decoder::PNGDecoder;
 
 mod common;
@@ -119,6 +119,12 @@ impl PNG {
     }
 }
 
+    pub fn palette(&self) -> Result<&PLTE, ChunkError> {
+        match self.plte.as_ref() {
+            Some(x) => Ok(x),
+            None => Err(ChunkError::PLTEChunkNotFound)
+        }
+    }
 
     pub fn iccp_profile(&self) -> Result<ICCProfile, PNGDecodingError> {
         // let png = PNG::from_path(r"C:\Users\Connor\Documents\Fonts\Merry Christmas\merry-christmas_flag.png")?;

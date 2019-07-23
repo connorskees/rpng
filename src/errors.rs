@@ -18,7 +18,9 @@ pub enum PNGDecodingError {
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum ChunkError {
     UnexpectedPLTEChunk,
+    PLTEChunkNotFound,
     InvalidPLTELength,
+    ICCPChunkNotFound,
     InvalidgAMALength,
     UnrecognizedCriticalChunk(String),
     UnrecognizedsRGBValue(u8),
@@ -34,6 +36,9 @@ impl fmt::Display for ChunkError {
             },
             UnexpectedPLTEChunk => {
                 write!(f, "Unexpected PLTE chunk found")
+            },
+            PLTEChunkNotFound => {
+                write!(f, "No PLTE chunk was found")
             },
             InvalidPLTELength => {
                 write!(f, "PLTE chunk length was not divisible by 3 (and so doesn't properly give RGB values)")
