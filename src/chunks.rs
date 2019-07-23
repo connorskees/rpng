@@ -1,7 +1,7 @@
 use std::fmt;
 use std::ops::Index;
 
-use crate::common::{BitDepth, ColorType, CompressionType, Unit};
+use crate::common::{BitDepth, ColorType, CompressionType};
 use crate::filter::{FilterMethod};
 use crate::interlacing::{Interlacing};
 use crate::errors::{ChunkError, MetadataError};
@@ -179,6 +179,29 @@ pub struct pHYs {
     pub pixels_per_unit_x: u32,
     pub pixels_per_unit_y: u32,
     pub unit: Unit,
+}
+
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+#[repr(u8)]
+pub enum Unit {
+    Unknown = 0,
+    Meters = 1,
+}
+
+impl std::default::Default for Unit {
+    fn default() -> Self {
+        Self::Unknown
+    }
+}
+
+impl Unit {
+    pub fn from_u8(unit: u8) -> Result<Self, MetadataError> {
+        match unit {
+            0 => Ok(Self::Unknown),
+            1 => Ok(Self::Meters),
+            _ => Err(MetadataError::UnrecognizedUnit{ unit }),
+        }
+    }
 }
 
 /// The tEXt chunk contains uncompressed, Latin-1 encoded textual information

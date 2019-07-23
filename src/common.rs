@@ -108,29 +108,6 @@ impl ColorType {
     }
 }
 
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
-#[repr(u8)]
-pub enum Unit {
-    Unknown = 0,
-    Meters = 1,
-}
-
-impl std::default::Default for Unit {
-    fn default() -> Self {
-        Self::Unknown
-    }
-}
-
-impl Unit {
-    pub fn from_u8(unit: u8) -> Result<Self, MetadataError> {
-        match unit {
-            0 => Ok(Self::Unknown),
-            1 => Ok(Self::Meters),
-            _ => Err(MetadataError::UnrecognizedUnit{ unit }),
-        }
-    }
-}
-
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Bitmap<T> {
     pub rows: Vec<Vec<Vec<T>>>,

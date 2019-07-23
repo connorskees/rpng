@@ -1,8 +1,8 @@
 use std::{str};
 use std::vec::Vec;
 
-use crate::chunks::{IHDR, PLTE, UnrecognizedChunk, pHYs, tEXt, iTXt, bKGD, gAMA, sRGB, cHRM, iCCP, sBIT, PaletteEntry, AncillaryChunks};
-use crate::common::{get_bit_at, BitDepth, ColorType, CompressionType, Unit};
+use crate::chunks::{IHDR, PLTE, UnrecognizedChunk, pHYs, Unit, tEXt, iTXt, bKGD, gAMA, sRGB, cHRM, iCCP, sBIT, PaletteEntry, AncillaryChunks};
+use crate::common::{get_bit_at, BitDepth, ColorType, CompressionType};
 use crate::filter::{FilterMethod};
 use crate::interlacing::{Interlacing};
 use crate::errors::{ChunkError, PNGDecodingError};
