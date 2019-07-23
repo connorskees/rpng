@@ -139,9 +139,16 @@ impl PaletteEntry {
 }
 
 /// The PLTE chunk contains a list of palette entries
+/// Entries are 0 indexed
 #[derive(Default, Clone, Hash, PartialEq, Eq)]
 pub struct PLTE {
     pub entries: Vec<PaletteEntry>
+}
+
+impl fmt::Display for PLTE {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "PLTE {{ {} entries }}", self.entries.len())
+    }
 }
 
 impl fmt::Debug for PLTE {
@@ -154,6 +161,14 @@ impl Index<u8> for PLTE {
     type Output = PaletteEntry;
 
     fn index(&self, index: u8) -> &Self::Output {
+        &self.entries[usize::from(index)]
+    }
+}
+
+impl Index<u16> for PLTE {
+    type Output = PaletteEntry;
+
+    fn index(&self, index: u16) -> &Self::Output {
         &self.entries[usize::from(index)]
     }
 }
@@ -286,11 +301,11 @@ impl bKGD {
 #[allow(non_snake_case)]
 pub struct AncillaryChunks {
     pub phys: Option<pHYs>,
-    pub itxt: Vec<Option<iTXt>>,
+    pub itxt: Vec<iTXt>,
     pub gama: Option<gAMA>,
     pub chrm: Option<cHRM>,
-    pub iccp: Option<iCCP>,
-    pub tEXt: Vec<Option<tEXt>>,
+    pub iCCP: Option<iCCP>,
+    pub tEXt: Vec<tEXt>,
     pub bKGD: Option<bKGD>,
     pub sBIT: Option<sBIT>,
     pub sRGB: Option<sRGB>,
@@ -303,12 +318,42 @@ impl AncillaryChunks {
             itxt: Vec::new(),
             gama: None,
             chrm: None,
-            iccp: None,
+            iCCP: None,
             tEXt: Vec::new(),
             bKGD: None,
             sBIT: None,
             sRGB: None,
         }
+    }
+}
+
+macro_rules! show_optional_chunk {
+    ($self:ident, $chunk:ident) => {
+        if $self.$chunk.is_none() { String::from("") } else { format!("\n\t{:?}", $self.$chunk) }
+    };
+}
+
+macro_rules! show_optional_chunk_mult {
+    ($self:ident, $chunk:ident) => {
+        if $self.$chunk.is_empty() { String::from("") } else { format!("\n\t{:?}", $self.$chunk) }
+    };
+}
+
+impl fmt::Display for AncillaryChunks {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        // unimplemented!()
+        write!(
+            f, "AncillaryChunks {{ {}{}{}{}{}{}{}{}{}\n    }}",
+            show_optional_chunk!(self, phys),
+            show_optional_chunk_mult!(self, itxt),
+            show_optional_chunk!(self, gama),
+            show_optional_chunk!(self, chrm),
+            show_optional_chunk!(self, iCCP),
+            show_optional_chunk_mult!(self, tEXt),
+            show_optional_chunk!(self, bKGD),
+            show_optional_chunk!(self, sBIT),
+            show_optional_chunk!(self, sRGB),
+        )
     }
 }
 
