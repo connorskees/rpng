@@ -56,7 +56,7 @@ impl fmt::Debug for PNG {
 }
 
 impl PNG {
-    pub fn from_path<S: AsRef<Path>>(file_path: S) -> Result<Self, PNGDecodingError> {
+    pub fn open<S: AsRef<Path>>(file_path: S) -> Result<Self, PNGDecodingError> {
         let file_size: usize = fs::metadata(&file_path)?.len() as usize;
         PNGDecoder::read(BufReader::with_capacity(file_size, File::open(file_path)?))
     }
