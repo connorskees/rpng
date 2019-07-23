@@ -8,13 +8,13 @@ use crate::errors::MetadataError;
 pub enum BitDepth {
     /// Colors are represented by a single bit. Black or white
     One = 1,
-    /// Color channels can be 0-4
+    /// Color channels can be 0-3
     Two = 2,
-    /// Color channels can be 0-16
+    /// Color channels can be 0-15
     Four = 4,
-    /// Color channels can be 0-256
+    /// Color channels can be 0-255
     Eight = 8,
-    /// Color channels can be 0-65_536
+    /// Color channels can be 0-65_535
     Sixteen = 16,
 }
 
