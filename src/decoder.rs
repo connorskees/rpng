@@ -139,9 +139,9 @@ impl PNGDecoder {
                     let keyword = if let Ok(k) = String::from_utf8(keyword_buffer) { k } else { continue };
                     let text = if let Ok(t) = String::from_utf8(text_buffer) { t } else { continue };
                     
-                    ancillary_chunks.tEXt.push(Some(tEXt {
+                    ancillary_chunks.tEXt.push(tEXt {
                         keyword, text
-                    }));
+                    });
 
                 },
                 "iTXt" => {
@@ -192,7 +192,7 @@ impl PNGDecoder {
                         translated_keyword,
                         text,
                     };
-                    ancillary_chunks.itxt.push(Some(itxt));
+                    ancillary_chunks.itxt.push(itxt);
                 },
                 "bKGD" => {
                     match ihdr.color_type {
@@ -293,9 +293,10 @@ impl PNGDecoder {
                     let mut compressed_profile: Vec<u8> = vec!(0; remaining_length as usize);
                     f.read_exact(&mut compressed_profile)?;
 
+                    profile_name_buffer.pop();
                     let profile_name = if let Ok(pn) = String::from_utf8(profile_name_buffer) { pn } else { continue };
                     let compression_method = CompressionType::from_u8(u8::from_be_bytes(compression_method_buffer))?;
-                    ancillary_chunks.iccp = Some(iCCP {
+                    ancillary_chunks.iCCP = Some(iCCP {
                         profile_name, compression_method, compressed_profile,
                     });
                 },
@@ -376,9 +377,9 @@ impl PNGDecoder {
                     ancillary_chunks.sRGB = Some(sRGB::from_u8(u8::from_be_bytes(intent_buffer))?);
                 }
                 _ => {
-                    let is_critical = get_bit_at(chunk_type_buffer[0], 5).unwrap() == 0;
-                    let is_public = get_bit_at(chunk_type_buffer[1], 5).unwrap() == 0;
-                    let is_safe_to_copy = get_bit_at(chunk_type_buffer[2], 5).unwrap() == 1;
+                    let is_critical = !get_bit_at(chunk_type_buffer[0], 5);
+                    let is_public = !get_bit_at(chunk_type_buffer[1], 5);
+                    let is_safe_to_copy = get_bit_at(chunk_type_buffer[2], 5);
                     if is_critical {
                         return Err(ChunkError::UnrecognizedCriticalChunk(chunk_type.into()).into());
                     }

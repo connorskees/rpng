@@ -14,7 +14,7 @@ use std::io::prelude::*;
 use std::fs::File;
 use std::path::Path;
 use std::convert::AsRef;
-use std::{fmt, fs, str};
+use std::{fmt, fs};
 use std::vec::Vec;
 
 use flate2::bufread::ZlibDecoder;
@@ -35,7 +35,6 @@ pub mod chunks;
 mod filter;
 mod interlacing;
 
-const FILE_NAME: &str = "redrect";
 
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct PNG {
@@ -50,7 +49,7 @@ impl fmt::Debug for PNG {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f, 
-            "PNG {{\n    ihdr: {:?}\n    plte: {:?}\n    data: {} bytes (compressed)\n    unrecognized_chunks: {:#?}\n    ancillary_chunks: {:#?}}}",
+            "PNG {{\n    ihdr: {:?}\n    plte: {:?}\n    data: {} bytes (compressed)\n    unrecognized_chunks: {:#?}\n    ancillary_chunks: {:#?}\n}}",
             self.ihdr, self.plte.as_ref(), self.idat.len(), self.unrecognized_chunks, self.ancillary_chunks
         )
     }
@@ -117,7 +116,6 @@ impl PNG {
     pub fn dimensions(&self) -> [u32; 2] {
         [self.ihdr.width, self.ihdr.height]
     }
-}
 
     pub fn palette(&self) -> Result<&PLTE, ChunkError> {
         match self.plte.as_ref() {
@@ -138,7 +136,7 @@ impl PNG {
         println!("{:?}", buffer.len());
         unimplemented!()
     }
-
+}
 
 fn main() -> Result<(), PNGDecodingError> {
     println!("{:?}", png);
