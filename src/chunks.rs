@@ -243,12 +243,18 @@ pub struct cHRM {
     pub blue_y: u32,
 }
 
-#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Clone, Hash, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub struct iCCP {
     pub profile_name: String,
     pub compression_method: CompressionType,
     pub compressed_profile: Vec<u8>,
+}
+
+impl fmt::Debug for iCCP {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "iCCP {{ {} }}", self.profile_name)
+    }
 }
 
 #[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
