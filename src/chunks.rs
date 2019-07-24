@@ -133,7 +133,7 @@ impl PaletteEntry {
     }
 
     /// Return the RGB value as an array [u8; 3]
-    pub fn to_array(self) -> [u16; 3] {
+    pub const fn to_array(self) -> [u16; 3] {
         [self.red, self.green, self.blue]
     }   
 }

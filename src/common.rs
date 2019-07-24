@@ -136,11 +136,11 @@ impl<T> Bitmap<T> {
         })
     }
 
-    pub fn width(&self) -> usize {
+    pub const fn width(&self) -> usize {
         self.width
     }
 
-    pub fn height(&self) -> usize {
+    pub const fn height(&self) -> usize {
         self.height
     }
 
@@ -158,6 +158,6 @@ impl<T> Index<[usize; 2]> for Bitmap<T> {
 }
 
 /// Get bit of big endian `num` at position `n`
-pub fn get_bit_at(num: u8, n: u8) -> bool {
+pub const fn get_bit_at(num: u8, n: u8) -> bool {
     (num & (1 << n)) != 0
 }

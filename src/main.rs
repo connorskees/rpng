@@ -117,7 +117,7 @@ impl PNG {
 
     }
 
-    pub fn dimensions(&self) -> [u32; 2] {
+    pub const fn dimensions(&self) -> [u32; 2] {
         [self.ihdr.width, self.ihdr.height]
     }
 
