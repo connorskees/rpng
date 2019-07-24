@@ -14,3 +14,12 @@ flate2 = { version = "1.0", features = ["zlib"], default-features = false }
 
 [dev-dependencies]
 serde_json = "1.0.40"
+
+[lib]
+path = "src/main.rs"
+
+[features]
+default = []
+bench-open = []
+bench-pixels = []
+bench-all = ["bench-open", "bench-pixels"]
