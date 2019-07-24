@@ -25,12 +25,12 @@ use chunks::{IHDR, PLTE, UnrecognizedChunk, AncillaryChunks, ICCProfile};
 pub use common::{get_bit_at, Bitmap, BitDepth, ColorType, CompressionType};
 pub use filter::{FilterMethod, FilterType};
 pub use interlacing::{Interlacing};
-pub use errors::{PNGDecodingError, ChunkError};
+use errors::{PNGDecodingError, ChunkError};
 pub use decoder::PNGDecoder;
 
 mod common;
 mod decoder;
-mod errors;
+pub mod errors;
 pub mod chunks;
 mod filter;
 mod interlacing;
