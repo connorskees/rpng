@@ -138,7 +138,7 @@ impl PaletteEntry {
     }   
 }
 
-/// The PLTE chunk contains a list of palette entries
+/// The PLTE chunk contains a list of palette entries.
 /// Entries are 0 indexed
 #[derive(Default, Clone, Hash, PartialEq, Eq)]
 pub struct PLTE {
@@ -212,7 +212,7 @@ pub struct tEXt {
     pub text: String,
 }
 
-/// The iTXt chunk contains optionally compressed, utf8 text
+/// The iTXt chunk contains optionally compressed, UTF-8 encoded text
 #[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub struct iTXt {
@@ -243,6 +243,7 @@ pub struct cHRM {
     pub blue_y: u32,
 }
 
+/// Contains information for image's [ICC profile](https://en.wikipedia.org/wiki/ICC_profile) 
 #[derive(Default, Clone, Hash, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub struct iCCP {
@@ -275,7 +276,7 @@ pub enum sBIT {
 }
 
 /// Contains information about the ICC specified rendering intent
-/// http://www.libpng.org/pub/png/spec/1.2/PNG-Chunks.html#C.sRGB
+/// [spec](http://www.libpng.org/pub/png/spec/1.2/PNG-Chunks.html#C.sRGB)
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub enum sRGB {
@@ -306,6 +307,7 @@ impl sRGB {
     }
 }
 
+/// Contains transparency information
 #[derive(Clone, Hash, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub enum tRNS {
@@ -325,6 +327,7 @@ impl fmt::Debug for tRNS {
     }
 }
 
+/// Contains default background color
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub enum bKGD {

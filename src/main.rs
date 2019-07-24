@@ -1,10 +1,14 @@
-//! Library for working with PNG files
+//! # Library for working with PNG files
 //! 
-//! Currently supports
-//! - 1bit and 8bit color depths
-//! - RGB, RGBA, and indexed color types
-//! - All filters
-//! - Ancillary chunks: pHYs, tEXt, iTXt, bKGD, gAMA, sRGB, cHRM, iCCP, sBIT
+//! ## Currently supports
+//! |                  | Decoding                                             | Encoding |
+//! |------------------|------------------------------------------------------|----------|
+//! | Bit Depth        | 1, 8                                                 |          |
+//! | Color Type       | RGB, RGBA, Indexed partial support for Lum and LumA  |          |
+//! | Filtering        | All filter methods                                   |          |
+//! | Interlacing      | None                                                 |          |
+//! | Ancillary Chunks | pHYs, tEXt, iTXt, bKGD, gAMA, sRGB, cHRM, iCCP, sBIT |          |
+
 
 #![allow(dead_code)]
 #![deny(unsafe_code, missing_debug_implementations)]
