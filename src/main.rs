@@ -9,8 +9,6 @@
 //! | Interlacing      | None                                                 |          |
 //! | Ancillary Chunks | pHYs, tEXt, iTXt, bKGD, gAMA, sRGB, cHRM, iCCP, sBIT |          |
 
-
-#![allow(dead_code)]
 #![deny(unsafe_code, missing_debug_implementations)]
 
 use std::io::{BufReader};
@@ -142,6 +140,7 @@ impl PNG {
     }
 }
 
+#[allow(dead_code)]
 fn main() -> Result<(), PNGDecodingError> {
     println!("{:?}", png);
     Ok(())
