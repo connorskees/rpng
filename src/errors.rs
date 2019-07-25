@@ -5,6 +5,7 @@ use crate::common::{BitDepth, ColorType};
 #[derive(Debug)]
 pub enum PNGDecodingError {
     InvalidHeader{found: [u8; 8], expected: [u8; 8]},
+    /// IHDR length was found to be more or less than 13, which indicates a serious error
     InvalidIHDRLength(u32),
     MetadataError(MetadataError),
     FilterError(FilterError),
@@ -17,12 +18,19 @@ pub enum PNGDecodingError {
 /// Errors dealing with critical and ancillary chunks
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum ChunkError {
+    /// A PLTE chunk was found in a color type other than indexed, RBA, or RGBA
     UnexpectedPLTEChunk,
+    /// A PLTE chunk was not found in an indexed color type context
     PLTEChunkNotFound,
+    /// The length of the PLTE chunk found did not fit `len % 3 == 0`, so is potentially corrupted
     InvalidPLTELength,
+    /// Attempted to access ICC profile; however, no ICCP chunk was found
     ICCPChunkNotFound,
+    /// The length of the gAMA chunk is known to be 4 bytes; however, this was not found
     InvalidgAMALength,
+    /// A critical chunk (specified by a capital first letter) was not recognized
     UnrecognizedCriticalChunk(String),
+    /// An sRGB value outside the range `0..=3` was found
     UnrecognizedsRGBValue(u8),
 }
 
@@ -59,13 +67,21 @@ impl fmt::Display for ChunkError {
 /// Errors dealing with data that describe the PNG file
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum MetadataError {
+    /// Bit depth was not in `[1, 2, 4, 8, 16]`
     UnrecognizedBitDepth{ bit_depth: u8 },
+    /// Compression type was not in `[0, 1]`
     UnrecognizedCompressionType{ compression_type: u8 },
+    /// Unit (from pHYs chunk) was not in `[0, 1]`
     UnrecognizedUnit{ unit: u8 },
+    /// Color type was not in `[0, 2, 3, 4, 6]`
     UnrecognizedColorType{ color_type: u8 },
+    /// Interlacing type was not in `[0, 1]`
     UnrecognizedInterlacingType{ interlacing_type: u8 },
+    /// Width was not in range `1..=2**31`
     InvalidWidth{ width: usize },
+    /// Height was not in range `1..=2**31`
     InvalidHeight{ height: usize },
+    /// An invalid bit depth and color type combination was found 
     InvalidBitDepthForColorType{ bit_depth: BitDepth, color_type: ColorType }
 }
 
@@ -103,6 +119,7 @@ impl fmt::Display for MetadataError {
 
 /// Errors related to filtering
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+// TODO: consolidate with metadata error
 pub enum FilterError {
     UnrecognizedFilterMethod(u16),
     UnrecognizedFilterType(u8),
