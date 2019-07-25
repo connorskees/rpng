@@ -18,10 +18,22 @@ pub enum BitDepth {
     Sixteen = 16,
 }
 
+impl std::convert::Into<u8> for BitDepth {
+    fn into(self) -> u8 {
+        match self {
+            Self::One => 1,
+            Self::Two => 2,
+            Self::Four => 4,
+            Self::Eight => 8,
+            Self::Sixteen => 16,
+        }
+    }
+}
+
 impl BitDepth {
     /// Map BitDepth to its integer representation.
     /// Returns Err(UnrecognizedBitDepth) on unknown depth
-    pub fn from_u8(bit_depth: u8) -> Result<Self, MetadataError> {
+    pub fn from_u8(bit_depth: u8) -> Result<BitDepth, MetadataError>  {
         match bit_depth {
             1 =>  Ok(Self::One),
             2 =>  Ok(Self::Two),
@@ -34,13 +46,7 @@ impl BitDepth {
 
     /// Map BitDepth to its integer representation.
     pub fn as_u8(self) -> u8 {
-        match self {
-            Self::One => 1,
-            Self::Two => 2,
-            Self::Four => 4,
-            Self::Eight => 8,
-            Self::Sixteen => 16,
-        }
+        self.into()
     }
 }
 
