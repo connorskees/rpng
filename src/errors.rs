@@ -162,21 +162,18 @@ macro_rules! convert_to_decoding_error {
                 PNGDecodingError::$val(error)
             }
         }
-    )
+    );
+    ($name:ident, $original:ty) => (
+        impl std::convert::From<$original> for PNGDecodingError {
+            fn from(error: $original) -> Self {
+                PNGDecodingError::$name(error)
+            }
+        }
+    );
 }
 
 convert_to_decoding_error!(FilterError);
 convert_to_decoding_error!(MetadataError);
 convert_to_decoding_error!(ChunkError);
-
-impl std::convert::From<io::Error> for PNGDecodingError {
-    fn from(error: io::Error) -> Self {
-        PNGDecodingError::IoError(error)
-    }
-}
-
-impl std::convert::From<std::str::Utf8Error> for PNGDecodingError {
-    fn from(error: std::str::Utf8Error) -> Self {
-        PNGDecodingError::StringDecodeError(error)
-    }
-}
+convert_to_decoding_error!(IoError, io::Error);
+convert_to_decoding_error!(StringDecodeError, std::str::Utf8Error);
