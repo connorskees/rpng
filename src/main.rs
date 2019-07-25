@@ -138,6 +138,10 @@ impl PNG {
         println!("{:?}", buffer.len());
         unimplemented!()
     }
+    /// `bpp` is defined as the number of bytes per complete pixel, rounding up to 1
+    pub fn bpp(&self) -> u8 {
+        std::cmp::max(1, (self.ihdr.bit_depth.as_u8()/8) * self.ihdr.color_type.channels())
+    }
 }
 
 #[allow(dead_code)]
