@@ -32,25 +32,25 @@ impl fmt::Display for ChunkError {
         use ChunkError::*;
         match self {
             UnrecognizedCriticalChunk(name) => {
-                write!(f, "Found unrecognized critical chunk '{}'", name)
+                write!(f, "found unrecognized critical chunk '{}'", name)
             },
             UnexpectedPLTEChunk => {
-                write!(f, "Unexpected PLTE chunk found")
+                write!(f, "unexpected PLTE chunk found")
             },
             PLTEChunkNotFound => {
-                write!(f, "No PLTE chunk was found")
+                write!(f, "no PLTE chunk was found")
             },
             InvalidPLTELength => {
                 write!(f, "PLTE chunk length was not divisible by 3 (and so doesn't properly give RGB values)")
             },
             ICCPChunkNotFound => {
-                write!(f, "An ICC profile was not found")
+                write!(f, "an ICC profile was not found")
             },
             InvalidgAMALength => {
                 write!(f, "gAMA chunk length was not equal to 4")
             },
             UnrecognizedsRGBValue(val) => {
-                write!(f, "Found {}, but expected value in 0..=3", val)
+                write!(f, "found {}, but expected value in 0..=3", val)
             }
         }
     }
@@ -74,28 +74,28 @@ impl fmt::Display for MetadataError {
         use MetadataError::*;
         match self {
             UnrecognizedBitDepth{ bit_depth } => {
-                write!(f, "Expected bit depth in [1, 2, 4, 8, 16], but found {}", bit_depth)
+                write!(f, "expected bit depth in [1, 2, 4, 8, 16], but found {}", bit_depth)
             },
             UnrecognizedCompressionType{ compression_type } => {
-                write!(f, "Expected compression type in [0, 1], but found {}", compression_type)
+                write!(f, "expected compression type in [0, 1], but found {}", compression_type)
             },
             UnrecognizedUnit{ unit } => {
-                write!(f, "Expected unit in [0, 1], but found {}", unit)
+                write!(f, "expected unit in [0, 1], but found {}", unit)
             },
             UnrecognizedColorType{ color_type } => {
-                write!(f, "Expected color type in [0, 2, 3, 4, 6], but found {}", color_type)
+                write!(f, "expected color type in [0, 2, 3, 4, 6], but found {}", color_type)
             },
             UnrecognizedInterlacingType{ interlacing_type } => {
-                write!(f, "Expected interlacing type in [0, 1], but found {}", interlacing_type)
+                write!(f, "expected interlacing type in [0, 1], but found {}", interlacing_type)
             },
             InvalidWidth{ width } => {
-                write!(f, "Expected width in 1..=2**31, but found {}", width)
+                write!(f, "expected width in 1..=2**31, but found {}", width)
             },
             InvalidHeight{ height } => {
-                write!(f, "Expected height in 1..=2**31, but found {}", height)
+                write!(f, "expected height in 1..=2**31, but found {}", height)
             },
             InvalidBitDepthForColorType{ bit_depth, color_type } => {
-                write!(f, "Found incompatible bit depth and color type combination: bit_depth: {:?} - color_type: {:?}", bit_depth, color_type)
+                write!(f, "found incompatible bit depth and color type combination: bit_depth: {:?} - color_type: {:?}", bit_depth, color_type)
             },
         }
     }
@@ -113,10 +113,10 @@ impl fmt::Display for FilterError {
         use FilterError::*;
         match self {
             UnrecognizedFilterMethod(val) => {
-                write!(f, "Expected value in 0..=4, but found {}", val)
+                write!(f, "expected value in 0..=4, but found {}", val)
             },
             UnrecognizedFilterType(val) => {
-                write!(f, "Expected value of 0, but found {}", val)
+                write!(f, "expected value of 0, but found {}", val)
             },
         }
     }
@@ -127,10 +127,10 @@ impl fmt::Display for PNGDecodingError {
         use PNGDecodingError::*;
         match self {
             InvalidHeader{found, expected} => {
-                write!(f, "Expected bytes {:?}, but found {:?}", expected, found)
+                write!(f, "expected bytes {:?}, but found {:?}", expected, found)
             },
             InvalidIHDRLength(len) => {
-                write!(f, "Expected 13, but found {}", len)
+                write!(f, "expected 13, but found {}", len)
             },
             MetadataError(err) => {
                 write!(f, "{}", err)
