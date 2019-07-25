@@ -167,3 +167,30 @@ impl<T> Index<[usize; 2]> for Bitmap<T> {
 pub const fn get_bit_at(num: u8, n: u8) -> bool {
     (num & (1 << n)) != 0
 }
+
+#[allow(dead_code, unused_imports)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_bit_depth_conversions() {
+        assert_eq!(BitDepth::One, BitDepth::from_u8(1).unwrap());
+        assert_eq!(BitDepth::Two, BitDepth::from_u8(2).unwrap());
+        assert_eq!(BitDepth::Four, BitDepth::from_u8(4).unwrap());
+        assert_eq!(BitDepth::Eight, BitDepth::from_u8(8).unwrap());
+        assert_eq!(BitDepth::Sixteen, BitDepth::from_u8(16).unwrap());
+        assert!(BitDepth::from_u8(17).is_err());
+        
+        assert_eq!(BitDepth::One.as_u8(), 1);
+        assert_eq!(BitDepth::Two.as_u8(), 2);
+        assert_eq!(BitDepth::Four.as_u8(), 4);
+        assert_eq!(BitDepth::Eight.as_u8(), 8);
+        assert_eq!(BitDepth::Sixteen.as_u8(), 16);
+    }
+
+    fn test_get_bit_at() {
+        assert_eq!(true, get_bit_at(0b001, 0));
+        assert_eq!(false, get_bit_at(0b001, 0));
+        assert_eq!(false, get_bit_at(0b001, 0));
+    }
+}
