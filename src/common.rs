@@ -164,6 +164,18 @@ impl<T> Index<[usize; 2]> for Bitmap<T> {
 }
 
 /// Get bit of big endian `num` at position `n`
+/// where n is 0 indexed
+/// 
+/// # Examples
+/// ```
+/// use rpng::get_bit_at;
+/// 
+/// let number = 0b1101;
+/// assert_eq!(1, u8::from(get_bit_at(number, 0)));
+/// assert_eq!(0, u8::from(get_bit_at(number, 1)));
+/// assert_eq!(1, u8::from(get_bit_at(number, 2)));
+/// assert_eq!(1, u8::from(get_bit_at(number, 3)));
+/// ```
 pub const fn get_bit_at(num: u8, n: u8) -> bool {
     (num & (1 << n)) != 0
 }
