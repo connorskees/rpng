@@ -204,6 +204,12 @@ pub const fn get_bit_at(num: u8, n: u8) -> bool {
     (num & (1 << n)) != 0
 }
 
+#[derive(Debug)]
+pub struct DPI {
+    pub dpi_x: u32,
+    pub dpi_y: u32,
+}
+
 #[allow(dead_code, unused_imports)]
 mod test {
     use super::*;
