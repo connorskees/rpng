@@ -23,7 +23,7 @@ use flate2::bufread::ZlibDecoder;
 #[cfg(test)]
 use serde_json;
 
-use chunks::{IHDR, PLTE, UnrecognizedChunk, AncillaryChunks, ICCProfile};
+use chunks::{IHDR, PLTE, pHYs, Unit, UnrecognizedChunk, AncillaryChunks, ICCProfile};
 pub use common::{get_bit_at, Bitmap, BitDepth, ColorType, CompressionType};
 pub use filter::{FilterMethod, FilterType};
 pub use interlacing::{Interlacing};

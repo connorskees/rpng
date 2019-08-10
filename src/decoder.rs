@@ -151,7 +151,7 @@ impl PNGDecoder {
                     f.read_exact(&mut unit_buffer)?;
                     let unit = u8::from_be_bytes(unit_buffer);
 
-                    ancillary_chunks.phys = Some(pHYs {
+                    ancillary_chunks.pHYs = Some(pHYs {
                         pixels_per_unit_x, pixels_per_unit_y,
                         unit: Unit::from_u8(unit)?
                     });

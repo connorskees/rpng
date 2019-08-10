@@ -356,7 +356,7 @@ impl bKGD {
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 #[allow(non_snake_case)]
 pub struct AncillaryChunks {
-    pub phys: Option<pHYs>,
+    pub pHYs: Option<pHYs>,
     pub itxt: Vec<iTXt>,
     pub gama: Option<gAMA>,
     pub chrm: Option<cHRM>,
@@ -371,7 +371,7 @@ pub struct AncillaryChunks {
 impl AncillaryChunks {
     pub fn new() -> AncillaryChunks {
         AncillaryChunks {
-            phys: None,
+            pHYs: None,
             itxt: Vec::new(),
             gama: None,
             chrm: None,
@@ -401,7 +401,7 @@ impl fmt::Display for AncillaryChunks {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f, "AncillaryChunks {{ {}{}{}{}{}{}{}{}{}\n    }}",
-            show_optional_chunk!(self, phys),
+            show_optional_chunk!(self, pHYs),
             show_optional_chunk_mult!(self, itxt),
             show_optional_chunk!(self, gama),
             show_optional_chunk!(self, chrm),
