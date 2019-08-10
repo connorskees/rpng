@@ -31,12 +31,12 @@ impl IHDR {
         ) -> Result<Self, MetadataError> {
 
         if !(0 < width && width < 2u32.pow(31)) {
-            // between 0 and 2^31
+            // between 0 and 2**31
             return Err(MetadataError::InvalidWidth{ width: width as usize });
         }
         
         if !(0 < height && height < 2u32.pow(31)) {
-            // between 0 and 2^31
+            // between 0 and 2**31
             return Err(MetadataError::InvalidHeight{ height: height as usize });
         }
 
@@ -412,6 +412,7 @@ impl fmt::Debug for tRNS {
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub enum bKGD {
+    // TODO: rename field to gray
     Grayscale{ grayscale: u16 },
     RGB{ red: u16, green: u16, blue: u16 },
     Palette{ palette_index: u8, rgb: PaletteEntry },
