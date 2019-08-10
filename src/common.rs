@@ -72,6 +72,20 @@ impl CompressionType {
             _ => Err(MetadataError::UnrecognizedCompressionType{ compression_type })
         }
     }
+
+    pub fn as_u8(&self) -> u8 {
+        match self {
+            CompressionType::Deflate => 0,
+        }
+    }
+}
+
+impl std::convert::Into<u8> for CompressionType {
+    fn into(self) -> u8 {
+        match self {
+            CompressionType::Deflate => 0,
+        }
+    }
 }
 
 impl std::default::Default for CompressionType {
