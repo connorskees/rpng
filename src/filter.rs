@@ -57,6 +57,12 @@ impl FilterMethod {
             _ => Err(FilterError::UnrecognizedFilterMethod(val))
         }
     }
+
+    pub fn as_u8(&self) -> u8 {
+        match self {
+            FilterMethod::Adaptive => 0,
+        }
+    }
 }
 
 impl std::default::Default for FilterMethod {
