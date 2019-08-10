@@ -66,9 +66,9 @@ pub enum CompressionType {
 }
 
 impl CompressionType {
-    pub fn from_u8(compression_type: u8) -> Result<Self, MetadataError> {
+    pub fn from_u8(compression_type: u8) -> Result<CompressionType, MetadataError> {
         match compression_type {
-            0 => Ok(Self::Deflate),
+            0 => Ok(CompressionType::Deflate),
             _ => Err(MetadataError::UnrecognizedCompressionType{ compression_type })
         }
     }
