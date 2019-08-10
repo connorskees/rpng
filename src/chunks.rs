@@ -72,6 +72,18 @@ impl IHDR {
     }
 }
 
+trait Chunk<'a> {
+    fn parse<T: Read + BufRead>(buf: T) -> Self;
+    fn is_critical() -> bool;
+    fn is_public() -> bool;
+    fn is_safe_to_copy() -> bool;
+    fn is_unspecified_field() -> bool {
+        false
+    }
+    fn name() -> &'a str;
+    fn as_bytes(self) -> Vec<u8>;
+}
+
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct UnrecognizedChunk {
     pub length: u32,
