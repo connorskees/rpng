@@ -1,10 +1,11 @@
 use std::fmt;
 use std::ops::Index;
+use std::io::{Read, BufRead};
 
 use crate::common::{BitDepth, ColorType, CompressionType};
 use crate::filter::{FilterMethod};
 use crate::interlacing::{Interlacing};
-use crate::errors::{ChunkError, MetadataError};
+use crate::errors::{ChunkError, MetadataError, PNGDecodingError};
 
 /// The IHDR chunk contains important metadata for reading the image
 #[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
@@ -72,8 +73,76 @@ impl IHDR {
     }
 }
 
+impl<'a> Chunk<'a> for IHDR {
+    fn is_critical() -> bool {
+        true
+    }
+    fn is_public() -> bool {
+        true
+    }
+    fn is_safe_to_copy() -> bool {
+        true
+    }
+    fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PNGDecodingError> {
+        let (
+            mut width_buffer,
+            mut height_buffer,
+        ) = ([0; 4], [0; 4]);
+        let (
+            mut bit_depth_buffer,
+            mut color_type_buffer,
+            mut compression_type_buffer,
+            mut filter_method_buffer,
+            mut interlace_method_buffer
+        ) = ([0; 1], [0; 1], [0; 1], [0; 1], [0; 1]);
+
+        if length != 13 {
+            return Err(PNGDecodingError::InvalidIHDRLength(length));
+        }
+
+        buf.read_exact(&mut width_buffer)?;
+        let width = u32::from_be_bytes(width_buffer);
+        
+        buf.read_exact(&mut height_buffer)?;
+        let height = u32::from_be_bytes(height_buffer);
+        
+        buf.read_exact(&mut bit_depth_buffer)?;
+        let bit_depth = BitDepth::from_u8(u8::from_be_bytes(bit_depth_buffer))?;
+        
+        buf.read_exact(&mut color_type_buffer)?;
+        let color_type = ColorType::from_u8(u8::from_be_bytes(color_type_buffer))?;
+        
+        buf.read_exact(&mut compression_type_buffer)?;
+        let compression_type = CompressionType::from_u8(u8::from_be_bytes(compression_type_buffer))?;
+        
+        buf.read_exact(&mut filter_method_buffer)?;
+        let filter_method = FilterMethod::from_u8(u8::from_be_bytes(filter_method_buffer))?;
+        
+        buf.read_exact(&mut interlace_method_buffer)?;
+        let interlace_method = Interlacing::from_u8(u8::from_be_bytes(interlace_method_buffer))?;
+
+        Ok(IHDR::new(width, height, bit_depth, color_type, compression_type, filter_method, interlace_method)?)
+    }
+    fn name() -> &'a str {
+        "IHDR"
+    }
+    #[allow(unsafe_code)]
+    fn as_bytes(self) -> Vec<u8> {
+        let mut buffer: Vec<u8> = Vec::with_capacity(13);
+        
+        buffer.extend(&u32_to_be_bytes(self.width));
+        buffer.extend(&u32_to_be_bytes(self.height));
+        buffer.push(self.bit_depth.as_u8());
+        buffer.push(self.color_type.as_u8());
+        buffer.push(self.compression_type.as_u8());
+        buffer.push(self.filter_method.as_u8());
+        buffer.push(self.interlace_method.as_u8());
+        buffer
+    }
+}
+
 trait Chunk<'a> {
-    fn parse<T: Read + BufRead>(buf: T) -> Self;
+    fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PNGDecodingError> where Self: std::marker::Sized;
     fn is_critical() -> bool;
     fn is_public() -> bool;
     fn is_safe_to_copy() -> bool;
