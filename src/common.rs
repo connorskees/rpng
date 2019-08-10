@@ -101,11 +101,11 @@ impl ColorType {
     /// Returns Err(UnrecognizedColorType) on unknown type
     pub fn from_u8(color_type: u8) -> Result<Self, MetadataError> {
         match color_type {
-            0 => Ok(Self::Grayscale),
-            2 => Ok(Self::RGB),
-            3 => Ok(Self::Indexed),
-            4 => Ok(Self::GrayscaleAlpha),
-            6 => Ok(Self::RGBA),
+            0 => Ok(ColorType::Grayscale),
+            2 => Ok(ColorType::RGB),
+            3 => Ok(ColorType::Indexed),
+            4 => Ok(ColorType::GrayscaleAlpha),
+            6 => Ok(ColorType::RGBA),
             _ => Err(MetadataError::UnrecognizedColorType{ color_type })
         }
     }
@@ -124,11 +124,11 @@ impl ColorType {
     /// grayscale has 1 channel (grayscale)
     pub fn channels(self) -> u8 {
         match self {
-            Self::Grayscale => 1,
-            Self::RGB => 3,
-            Self::Indexed => 1,
-            Self::GrayscaleAlpha => 2,
-            Self::RGBA => 4,
+            ColorType::Grayscale => 1,
+            ColorType::RGB => 3,
+            ColorType::Indexed => 1,
+            ColorType::GrayscaleAlpha => 2,
+            ColorType::RGBA => 4,
         }
     }
 }
