@@ -110,6 +110,16 @@ impl ColorType {
         }
     }
 
+    pub fn as_u8(&self) -> u8 {
+        match self {
+            ColorType::Grayscale => 0,
+            ColorType::RGB => 2,
+            ColorType::Indexed => 3,
+            ColorType::GrayscaleAlpha => 4,
+            ColorType::RGBA => 6,
+        }
+    }
+
     /// Number of unique channels per pixel: for example, RGB has 3 channels (red, green, and blue); while
     /// grayscale has 1 channel (grayscale)
     pub fn channels(self) -> u8 {
