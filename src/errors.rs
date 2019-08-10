@@ -194,3 +194,9 @@ convert_to_decoding_error!(MetadataError);
 convert_to_decoding_error!(ChunkError);
 convert_to_decoding_error!(IoError, io::Error);
 convert_to_decoding_error!(StringDecodeError, std::str::Utf8Error);
+
+
+#[derive(Debug)]
+pub enum PNGEncodingError {
+    
+}
