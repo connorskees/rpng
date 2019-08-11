@@ -94,26 +94,8 @@ impl PNGDecoder {
                 "pHYs" => {
                     ancillary_chunks.pHYs = Some(pHYs::parse(length, &mut f)?);
                 },
-                "tEXt" => {
-                    let mut keyword_buffer: Vec<u8> = Vec::new();
-                    let keyword_len = f.read_until(b'\0', &mut keyword_buffer)?;
-
-                    let remaining_length = length
-                                            - (keyword_len as u32);
-
-                    let mut text_buffer: Vec<u8> = vec!(0; remaining_length as usize);
-                    f.read_exact(&mut text_buffer)?;
-
-                    // the null byte is included in `read_until()`
-                    keyword_buffer.pop();
-
-                    let keyword = if let Ok(k) = String::from_utf8(keyword_buffer) { k } else { continue };
-                    let text = if let Ok(t) = String::from_utf8(text_buffer) { t } else { continue };
-                    
-                    ancillary_chunks.tEXt.push(tEXt {
-                        keyword, text
-                    });
-
+                "tEXt" => {                    
+                    ancillary_chunks.tEXt.push(tEXt::parse(length, &mut f)?);
                 },
                 "iTXt" => {
                     let mut keyword_buffer: Vec<u8> = Vec::new();

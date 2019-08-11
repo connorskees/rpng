@@ -367,6 +367,47 @@ pub struct tEXt {
     pub text: String,
 }
 
+impl<'a> Chunk<'a> for tEXt {
+    const IS_CRITICAL: bool = false;
+    const IS_PUBLIC: bool = true;
+    const IS_SAFE_TO_COPY: bool = true;
+    const NAME: &'a str = "tEXt";
+
+    fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PNGDecodingError> {
+        let mut keyword_buffer: Vec<u8> = Vec::new();
+        let keyword_len = buf.read_until(b'\0', &mut keyword_buffer)?;
+
+        let remaining_length = length
+                                - (keyword_len as u32);
+
+        let mut text_buffer: Vec<u8> = vec!(0; remaining_length as usize);
+        buf.read_exact(&mut text_buffer)?;
+
+        // the null byte is included in `read_until()`
+        keyword_buffer.pop();
+
+        // let keyword = if let Ok(k) = String::from_utf8(keyword_buffer) { k } else { continue };
+        let keyword = String::from_utf8(keyword_buffer)?;
+        let text = String::from_utf8(text_buffer)?;
+
+        Ok(tEXt { keyword, text })
+    }
+
+    fn as_bytes(self) -> Vec<u8> {
+        let mut buffer: Vec<u8> = Vec::with_capacity(4+self.keyword.len()+self.text.len()+4);
+
+        buffer.extend(b"tEXt");
+        buffer.extend(self.keyword.as_bytes());
+        buffer.extend(self.text.as_bytes());
+
+        let mut hasher = Hasher::new();
+        hasher.update(&buffer);
+        buffer.extend(&u32_to_be_bytes(hasher.finalize()));
+
+        buffer
+    }
+}
+
 /// The iTXt chunk contains optionally compressed, UTF-8 encoded text
 #[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
