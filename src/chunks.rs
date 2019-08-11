@@ -306,7 +306,7 @@ impl<'a> Chunk<'a> for pHYs {
     }
 
     fn as_bytes(self) -> Vec<u8> {
-        let mut buffer: Vec<u8> = Vec::with_capacity(4+13+4);
+        let mut buffer: Vec<u8> = Vec::with_capacity(4+4+4+1+4);
         
         buffer.extend(b"pHYs");
         buffer.extend(&u32_to_be_bytes(self.pixels_per_unit_x));
@@ -316,7 +316,6 @@ impl<'a> Chunk<'a> for pHYs {
         let mut hasher = Hasher::new();
         hasher.update(&buffer);
         buffer.extend(&u32_to_be_bytes(hasher.finalize()));
-        assert_eq!(buffer.len(), 21);
 
         buffer
     }
@@ -341,6 +340,13 @@ impl Unit {
             0 => Ok(Self::Unknown),
             1 => Ok(Self::Meters),
             _ => Err(MetadataError::UnrecognizedUnit{ unit }),
+        }
+    }
+    
+    pub fn as_u8(&self) -> u8 {
+        match self {
+            Self::Unknown => 0,
+            Self::Meters => 1,
         }
     }
 }
