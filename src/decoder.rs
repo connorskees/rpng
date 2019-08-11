@@ -40,21 +40,12 @@ impl PNGDecoder {
                     ihdr = IHDR::parse(length, &mut f)?;
                 },
                 "PLTE" => {
-                    if length % 3 != 0 {
-                        return Err(ChunkError::InvalidPLTELength.into())
-                    }
                     match ihdr.color_type {
                         ColorType::Indexed | ColorType::RGB | ColorType::RGBA => {},
                         ColorType::Grayscale | ColorType:: GrayscaleAlpha => return Err(ChunkError::UnexpectedPLTEChunk.into()),
                     }
-                    let mut entries_buffer: Vec<u8> = vec!(0; length as usize);
-                    f.read_exact(&mut entries_buffer)?;
-                    let entries_: Vec<&[u8]> = entries_buffer.chunks_exact(3).collect();
-                    let entries: Vec<PaletteEntry> =  entries_.iter().map(|x| PaletteEntry::from(*x)).collect();
 
-                    plte = Some(PLTE {
-                        entries
-                    });
+                    plte = Some(PLTE::parse(length, &mut f)?);
                 },
                 "tRNS" => {
                     match ihdr.color_type {

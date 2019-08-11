@@ -262,7 +262,15 @@ impl<'a> Chunk<'a> for PLTE {
     const NAME: &'a str = "PLTE";
 
     fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PNGDecodingError> {
-        unimplemented!()
+        if length % 3 != 0 {
+            return Err(ChunkError::InvalidPLTELength.into())
+        }
+        let mut entries_buffer: Vec<u8> = vec!(0; length as usize);
+        buf.read_exact(&mut entries_buffer)?;
+        let entries_: Vec<&[u8]> = entries_buffer.chunks_exact(3).collect();
+        let entries: Vec<PaletteEntry> =  entries_.iter().map(|x| PaletteEntry::from(*x)).collect();
+
+        Ok(PLTE { entries })
     }
 
     fn as_bytes(self) -> Vec<u8> {
