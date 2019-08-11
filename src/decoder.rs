@@ -2,7 +2,7 @@ use std::{str};
 use std::vec::Vec;
 
 use crate::chunks::{IHDR, PLTE, UnrecognizedChunk, pHYs, Unit, tEXt, iTXt, bKGD, tRNS, gAMA, sRGB, cHRM, iCCP, sBIT, PaletteEntry, AncillaryChunks};
-use crate::common::{get_bit_at, BitDepth, ColorType, CompressionType};
+use crate::common::{get_bit_at, BitDepth, ColorType, CompressionType, HEADER};
 use crate::filter::{FilterMethod};
 use crate::interlacing::{Interlacing};
 use crate::errors::{ChunkError, PNGDecodingError};
@@ -21,8 +21,8 @@ impl PNGDecoder {
         let mut plte: Option<PLTE> = None;
 
         f.read_exact(&mut header)?;
-        if header != [137u8, 80, 78, 71, 13, 10, 26, 10] {
-            return Err(PNGDecodingError::InvalidHeader{found: header, expected: [137, 80, 78, 71, 13, 10, 26, 10]});
+        if header != HEADER {
+            return Err(PNGDecodingError::InvalidHeader{found: header, expected: HEADER});
         }
 
         loop {
