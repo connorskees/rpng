@@ -1,7 +1,7 @@
 use std::{str};
 use std::vec::Vec;
 
-use crate::chunks::{IHDR, PLTE, UnrecognizedChunk, pHYs, Unit, tEXt, iTXt, bKGD, tRNS, gAMA, sRGB, cHRM, iCCP, sBIT, PaletteEntry, AncillaryChunks};
+use crate::chunks::{Chunk, IHDR, PLTE, UnrecognizedChunk, pHYs, Unit, tEXt, iTXt, bKGD, tRNS, gAMA, sRGB, cHRM, iCCP, sBIT, PaletteEntry, AncillaryChunks};
 use crate::common::{get_bit_at, BitDepth, ColorType, CompressionType, HEADER};
 use crate::filter::{FilterMethod};
 use crate::interlacing::{Interlacing};
@@ -37,44 +37,7 @@ impl PNGDecoder {
             match chunk_type {
                 // Critical
                 "IHDR" => {
-                    let (
-                        mut width_buffer,
-                        mut height_buffer,
-                    ) = ([0u8; 4], [0u8; 4]);
-                    let (
-                        mut bit_depth_buffer,
-                        mut color_type_buffer,
-                        mut compression_type_buffer,
-                        mut filter_method_buffer,
-                        mut interlace_method_buffer
-                    ) = ([0u8; 1], [0u8; 1], [0u8; 1], [0u8; 1], [0u8; 1]);
-
-                    if length != 13 {
-                        return Err(PNGDecodingError::InvalidIHDRLength(length));
-                    }
-
-                    f.read_exact(&mut width_buffer)?;
-                    let width = u32::from_be_bytes(width_buffer);
-                    
-                    f.read_exact(&mut height_buffer)?;
-                    let height = u32::from_be_bytes(height_buffer);
-                    
-                    f.read_exact(&mut bit_depth_buffer)?;
-                    let bit_depth = BitDepth::from_u8(u8::from_be_bytes(bit_depth_buffer))?;
-                    
-                    f.read_exact(&mut color_type_buffer)?;
-                    let color_type = ColorType::from_u8(u8::from_be_bytes(color_type_buffer))?;
-                    
-                    f.read_exact(&mut compression_type_buffer)?;
-                    let compression_type = CompressionType::from_u8(u8::from_be_bytes(compression_type_buffer))?;
-                    
-                    f.read_exact(&mut filter_method_buffer)?;
-                    let filter_method = FilterMethod::from_u8(u8::from_be_bytes(filter_method_buffer))?;
-                    
-                    f.read_exact(&mut interlace_method_buffer)?;
-                    let interlace_method = Interlacing::from_u8(u8::from_be_bytes(interlace_method_buffer))?;
-
-                    ihdr = IHDR::new(width, height, bit_depth, color_type, compression_type, filter_method, interlace_method)?;
+                    ihdr = IHDR::parse(length, &mut f)?;
                 },
                 "PLTE" => {
                     if length % 3 != 0 {
@@ -138,23 +101,7 @@ impl PNGDecoder {
 
                 // Ancillary
                 "pHYs" => {
-                    let mut pixels_per_x_buffer = [0u8; 4];
-                    let mut pixels_per_y_buffer = [0u8; 4];
-                    let mut unit_buffer = [0u8];
-
-                    f.read_exact(&mut pixels_per_x_buffer)?;
-                    let pixels_per_unit_x = u32::from_be_bytes(pixels_per_x_buffer);
-
-                    f.read_exact(&mut pixels_per_y_buffer)?;
-                    let pixels_per_unit_y = u32::from_be_bytes(pixels_per_y_buffer);
-
-                    f.read_exact(&mut unit_buffer)?;
-                    let unit = u8::from_be_bytes(unit_buffer);
-
-                    ancillary_chunks.pHYs = Some(pHYs {
-                        pixels_per_unit_x, pixels_per_unit_y,
-                        unit: Unit::from_u8(unit)?
-                    });
+                    ancillary_chunks.pHYs = Some(pHYs::parse(length, &mut f)?);
                 },
                 "tEXt" => {
                     let mut keyword_buffer: Vec<u8> = Vec::new();
