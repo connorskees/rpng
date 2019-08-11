@@ -74,15 +74,11 @@ impl IHDR {
 }
 
 impl<'a> Chunk<'a> for IHDR {
-    fn is_critical() -> bool {
-        true
-    }
-    fn is_public() -> bool {
-        true
-    }
-    fn is_safe_to_copy() -> bool {
-        true
-    }
+    const IS_CRITICAL: bool = true;
+    const IS_PUBLIC: bool = true;
+    const IS_SAFE_TO_COPY: bool = true;
+    const NAME: &'a str = "IHDR";
+
     fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PNGDecodingError> {
         let (
             mut width_buffer,
@@ -123,10 +119,7 @@ impl<'a> Chunk<'a> for IHDR {
 
         Ok(IHDR::new(width, height, bit_depth, color_type, compression_type, filter_method, interlace_method)?)
     }
-    fn name() -> &'a str {
-        "IHDR"
-    }
-    #[allow(unsafe_code)]
+
     fn as_bytes(self) -> Vec<u8> {
         let mut buffer: Vec<u8> = Vec::with_capacity(13);
         
@@ -142,14 +135,12 @@ impl<'a> Chunk<'a> for IHDR {
 }
 
 trait Chunk<'a> {
+    const IS_CRITICAL: bool;
+    const IS_PUBLIC: bool;
+    const IS_RESERVED_FIELD: bool = false;
+    const IS_SAFE_TO_COPY: bool;
+    const NAME: &'a str;
     fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PNGDecodingError> where Self: std::marker::Sized;
-    fn is_critical() -> bool;
-    fn is_public() -> bool;
-    fn is_safe_to_copy() -> bool;
-    fn is_unspecified_field() -> bool {
-        false
-    }
-    fn name() -> &'a str;
     fn as_bytes(self) -> Vec<u8>;
 }
 
