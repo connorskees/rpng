@@ -80,19 +80,20 @@ impl<'a> Chunk<'a> for IHDR {
     const IS_PUBLIC: bool = true;
     const IS_SAFE_TO_COPY: bool = true;
     const NAME: &'a str = "IHDR";
+    const LENGTH: u32 = 13;
 
     fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PNGDecodingError> {
         let (
             mut width_buffer,
             mut height_buffer,
-        ) = ([0; 4], [0; 4]);
+        ) = ([0u8; 4], [0u8; 4]);
         let (
             mut bit_depth_buffer,
             mut color_type_buffer,
             mut compression_type_buffer,
             mut filter_method_buffer,
             mut interlace_method_buffer
-        ) = ([0; 1], [0; 1], [0; 1], [0; 1], [0; 1]);
+        ) = ([0u8; 1], [0u8; 1], [0u8; 1], [0u8; 1], [0u8; 1]);
 
         if length != 13 {
             return Err(PNGDecodingError::InvalidIHDRLength(length));
@@ -149,6 +150,7 @@ trait Chunk<'a> {
     const IS_PUBLIC: bool;
     const IS_RESERVED_FIELD: bool = false;
     const IS_SAFE_TO_COPY: bool;
+    const LENGTH: u32;
     const NAME: &'a str;
     fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PNGDecodingError> where Self: std::marker::Sized;
     fn as_bytes(self) -> Vec<u8>;
