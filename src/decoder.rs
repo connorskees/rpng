@@ -2,7 +2,7 @@ use std::{str};
 use std::vec::Vec;
 
 use crate::chunks::{Chunk, IHDR, PLTE, UnrecognizedChunk, pHYs, Unit, tEXt, iTXt, bKGD, tRNS, gAMA, sRGB, cHRM, iCCP, sBIT, PaletteEntry, AncillaryChunks};
-use crate::common::{get_bit_at, BitDepth, ColorType, CompressionType, HEADER};
+use crate::common::{IEND, get_bit_at, BitDepth, ColorType, CompressionType, HEADER};
 use crate::filter::{FilterMethod};
 use crate::interlacing::{Interlacing};
 use crate::errors::{ChunkError, PNGDecodingError};
@@ -13,7 +13,7 @@ pub struct PNGDecoder;
 
 impl PNGDecoder {
     pub fn read<T: std::io::BufRead + std::io::Read>(mut f: T) -> Result<PNG, PNGDecodingError> {
-        let mut header = [0; 8];
+        let mut header = [0u8; 8];
         let mut ihdr: IHDR = Default::default();
         let mut unrecognized_chunks: Vec<UnrecognizedChunk> = Vec::new();
         let mut idat: Vec<u8> = Vec::new();
@@ -87,6 +87,11 @@ impl PNGDecoder {
                     idat.extend(v);
                 },
                 "IEND" => {
+                    let mut iend_crc = [0u8; 4];
+                    f.read_exact(&mut iend_crc)?;
+                    if length != 0 || iend_crc != [174u8, 66, 96, 130] {
+                        return Err(PNGDecodingError::InvalidIENDChunk{found: (length, iend_crc), expected: IEND});
+                    }
                     break;
                 },
 

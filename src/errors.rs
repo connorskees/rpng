@@ -7,7 +7,7 @@ pub enum PNGDecodingError {
     /// The 8 byte PNG header was found to be incorrect, which indicates either an error in transmission
     ///  or that the user is attempting to parse something other than a PNG file 
     InvalidHeader{found: [u8; 8], expected: [u8; 8]},
-    InvalidIENDChunk{found: [u8; 12], expected: [u8; 12]},
+    InvalidIENDChunk{found: (u32, [u8; 4]), expected: [u8; 12]},
     /// IHDR length was found to be more or less than 13, which indicates a serious error
     InvalidIHDRLength(u32),
     MetadataError(MetadataError),
