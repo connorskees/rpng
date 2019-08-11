@@ -2,6 +2,8 @@ use std::ops::Index;
 
 use crate::errors::MetadataError;
 
+pub const HEADER: [u8; 8] = [137u8, 80, 78, 71, 13, 10, 26, 10];
+
 /// Number of bits per color channel
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(u8)]
