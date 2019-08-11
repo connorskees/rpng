@@ -2,6 +2,8 @@ use std::fmt;
 use std::ops::Index;
 use std::io::{Read, BufRead};
 
+use crc32fast::Hasher;
+
 use crate::common::{BitDepth, ColorType, CompressionType};
 use crate::filter::{FilterMethod};
 use crate::interlacing::{Interlacing};
@@ -121,8 +123,9 @@ impl<'a> Chunk<'a> for IHDR {
     }
 
     fn as_bytes(self) -> Vec<u8> {
-        let mut buffer: Vec<u8> = Vec::with_capacity(13);
+        let mut buffer: Vec<u8> = Vec::with_capacity(4+13+4);
         
+        buffer.extend(b"IHDR");
         buffer.extend(&u32_to_be_bytes(self.width));
         buffer.extend(&u32_to_be_bytes(self.height));
         buffer.push(self.bit_depth.as_u8());
@@ -130,6 +133,13 @@ impl<'a> Chunk<'a> for IHDR {
         buffer.push(self.compression_type.as_u8());
         buffer.push(self.filter_method.as_u8());
         buffer.push(self.interlace_method.as_u8());
+        buffer.push(self.interlace_method.as_u8());
+
+        let mut hasher = Hasher::new();
+        hasher.update(&buffer);
+        buffer.extend(&u32_to_be_bytes(hasher.finalize()));
+        assert_eq!(buffer.len(), 21);
+
         buffer
     }
 }
