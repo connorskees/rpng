@@ -78,9 +78,8 @@ impl IHDR {
 impl<'a> Chunk<'a> for IHDR {
     const IS_CRITICAL: bool = true;
     const IS_PUBLIC: bool = true;
-    const IS_SAFE_TO_COPY: bool = true;
+    const IS_SAFE_TO_COPY: bool = false;
     const NAME: &'a str = "IHDR";
-    const LENGTH: u32 = 13;
 
     fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PNGDecodingError> {
         let (
@@ -145,12 +144,11 @@ impl<'a> Chunk<'a> for IHDR {
     }
 }
 
-trait Chunk<'a> {
+pub trait Chunk<'a> {
     const IS_CRITICAL: bool;
     const IS_PUBLIC: bool;
     const IS_RESERVED_FIELD: bool = false;
     const IS_SAFE_TO_COPY: bool;
-    const LENGTH: u32;
     const NAME: &'a str;
     fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PNGDecodingError> where Self: std::marker::Sized;
     fn as_bytes(self) -> Vec<u8>;
@@ -256,6 +254,22 @@ impl Index<u16> for PLTE {
         &self.entries[usize::from(index)]
     }
 }
+
+impl<'a> Chunk<'a> for PLTE {
+    const IS_CRITICAL: bool = true;
+    const IS_PUBLIC: bool = true;
+    const IS_SAFE_TO_COPY: bool = true;
+    const NAME: &'a str = "PLTE";
+
+    fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PNGDecodingError> {
+        unimplemented!()
+    }
+
+    fn as_bytes(self) -> Vec<u8> {
+        unimplemented!()
+    }
+}
+
 /// The pHYs chunk contains information about the aspect ratio
 #[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
@@ -263,6 +277,49 @@ pub struct pHYs {
     pub pixels_per_unit_x: u32,
     pub pixels_per_unit_y: u32,
     pub unit: Unit,
+}
+
+impl<'a> Chunk<'a> for pHYs {
+    const IS_CRITICAL: bool = false;
+    const IS_PUBLIC: bool = true;
+    const IS_SAFE_TO_COPY: bool = true;
+    const NAME: &'a str = "pHYs";
+
+    fn parse<T: Read + BufRead>(_length: u32, buf: &mut T) -> Result<Self, PNGDecodingError> {
+        let mut pixels_per_x_buffer = [0u8; 4];
+        let mut pixels_per_y_buffer = [0u8; 4];
+        let mut unit_buffer = [0u8];
+
+        buf.read_exact(&mut pixels_per_x_buffer)?;
+        let pixels_per_unit_x = u32::from_be_bytes(pixels_per_x_buffer);
+
+        buf.read_exact(&mut pixels_per_y_buffer)?;
+        let pixels_per_unit_y = u32::from_be_bytes(pixels_per_y_buffer);
+
+        buf.read_exact(&mut unit_buffer)?;
+        let unit = u8::from_be_bytes(unit_buffer);
+
+        Ok(pHYs {
+            pixels_per_unit_x, pixels_per_unit_y,
+            unit: Unit::from_u8(unit)?
+        })
+    }
+
+    fn as_bytes(self) -> Vec<u8> {
+        let mut buffer: Vec<u8> = Vec::with_capacity(4+13+4);
+        
+        buffer.extend(b"pHYs");
+        buffer.extend(&u32_to_be_bytes(self.pixels_per_unit_x));
+        buffer.extend(&u32_to_be_bytes(self.pixels_per_unit_y));
+        buffer.push(self.unit.as_u8());
+
+        let mut hasher = Hasher::new();
+        hasher.update(&buffer);
+        buffer.extend(&u32_to_be_bytes(hasher.finalize()));
+        assert_eq!(buffer.len(), 21);
+
+        buffer
+    }
 }
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
