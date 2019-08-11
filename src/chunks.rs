@@ -133,7 +133,6 @@ impl<'a> Chunk<'a> for IHDR {
         buffer.push(self.compression_type.as_u8());
         buffer.push(self.filter_method.as_u8());
         buffer.push(self.interlace_method.as_u8());
-        buffer.push(self.interlace_method.as_u8());
 
         let mut hasher = Hasher::new();
         hasher.update(&buffer);
