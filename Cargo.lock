@@ -83,6 +83,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "rpng"
 version = "0.1.0"
 dependencies = [
+ "crc32fast 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "flate2 1.0.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.40 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
