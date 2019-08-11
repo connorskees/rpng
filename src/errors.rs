@@ -82,7 +82,7 @@ pub enum MetadataError {
     InvalidWidth{ width: usize },
     /// Height was not in range `1..=2**31`
     InvalidHeight{ height: usize },
-    /// An invalid bit depth and color type combination was found 
+    /// An invalid bit depth and color type combination was found
     InvalidBitDepthForColorType{ bit_depth: BitDepth, color_type: ColorType }
 }
 
@@ -203,5 +203,5 @@ convert_to_decoding_error!(StringDecodeError, std::string::FromUtf8Error);
 
 #[derive(Debug)]
 pub enum PNGEncodingError {
-    
+
 }

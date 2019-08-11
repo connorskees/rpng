@@ -191,11 +191,11 @@ impl<T> Index<[usize; 2]> for Bitmap<T> {
 
 /// Get bit of big endian `num` at position `n`
 /// where n is 0 indexed
-/// 
+///
 /// # Examples
 /// ```
 /// use rpng::get_bit_at;
-/// 
+///
 /// let number = 0b1101;
 /// assert_eq!(1, u8::from(get_bit_at(number, 0)));
 /// assert_eq!(0, u8::from(get_bit_at(number, 1)));
@@ -224,7 +224,7 @@ mod test {
         assert_eq!(BitDepth::Eight, BitDepth::from_u8(8).unwrap());
         assert_eq!(BitDepth::Sixteen, BitDepth::from_u8(16).unwrap());
         assert!(BitDepth::from_u8(17).is_err());
-        
+
         assert_eq!(BitDepth::One.as_u8(), 1);
         assert_eq!(BitDepth::Two.as_u8(), 2);
         assert_eq!(BitDepth::Four.as_u8(), 4);

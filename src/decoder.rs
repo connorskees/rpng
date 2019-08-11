@@ -63,11 +63,11 @@ impl PNGDecoder {
                             f.read_exact(&mut red_buffer)?;
                             f.read_exact(&mut green_buffer)?;
                             f.read_exact(&mut blue_buffer)?;
-                            
+
                             let red = u16::from_be_bytes(red_buffer);
                             let green = u16::from_be_bytes(green_buffer);
                             let blue = u16::from_be_bytes(blue_buffer);
-                            
+
                             ancillary_chunks.tRNS = Some(tRNS::RGB{ red, green, blue });
                         },
                         ColorType::Indexed => {
@@ -94,7 +94,7 @@ impl PNGDecoder {
                 "pHYs" => {
                     ancillary_chunks.pHYs = Some(pHYs::parse(length, &mut f)?);
                 },
-                "tEXt" => {                    
+                "tEXt" => {
                     ancillary_chunks.tEXt.push(tEXt::parse(length, &mut f)?);
                 },
                 "iTXt" => {
@@ -115,7 +115,7 @@ impl PNGDecoder {
                                             - 2
                                             - (language_tag_len as u32)
                                             - (translated_keyword_len as u32);
-                    
+
                     let mut text_buffer: Vec<u8> = vec!(0; remaining_length as usize);
                     f.read_exact(&mut text_buffer)?;
 
@@ -132,7 +132,7 @@ impl PNGDecoder {
                     let text = if compressed {
                         unimplemented!()
                     } else if let Ok(t) = String::from_utf8(text_buffer) {
-                        t 
+                        t
                     } else {
                         continue
                     };
@@ -196,7 +196,7 @@ impl PNGDecoder {
                         mut blue_x_buffer,
                         mut blue_y_buffer
                     ) = ([0u8; 4], [0u8; 4], [0u8; 4], [0u8; 4], [0u8; 4], [0u8; 4], [0u8; 4], [0u8; 4]);
-                    
+
                     f.read_exact(&mut white_point_x_buffer)?;
                     let white_point_x = u32::from_be_bytes(white_point_x_buffer);
 
@@ -229,7 +229,7 @@ impl PNGDecoder {
                         green_x,
                         green_y,
                         blue_x,
-                        blue_y, 
+                        blue_y,
                     });
                 },
                 "iCCP" => {
@@ -242,7 +242,7 @@ impl PNGDecoder {
                     let remaining_length = length
                                             - (profile_name_len as u32)
                                             - 1;
-                    
+
                     let mut compressed_profile: Vec<u8> = vec!(0; remaining_length as usize);
                     f.read_exact(&mut compressed_profile)?;
 
@@ -265,7 +265,7 @@ impl PNGDecoder {
                             let mut red_buffer = [0u8];
                             let mut green_buffer = [0u8];
                             let mut blue_buffer = [0u8];
-                            
+
                             f.read_exact(&mut red_buffer)?;
                             f.read_exact(&mut green_buffer)?;
                             f.read_exact(&mut blue_buffer)?;
@@ -280,7 +280,7 @@ impl PNGDecoder {
                             let mut red_buffer = [0u8];
                             let mut green_buffer = [0u8];
                             let mut blue_buffer = [0u8];
-                            
+
                             f.read_exact(&mut red_buffer)?;
                             f.read_exact(&mut green_buffer)?;
                             f.read_exact(&mut blue_buffer)?;
@@ -294,13 +294,13 @@ impl PNGDecoder {
                         ColorType::GrayscaleAlpha => {
                             let mut grayscale_buffer = [0u8];
                             let mut alpha_buffer = [0u8];
-                            
+
                             f.read_exact(&mut grayscale_buffer)?;
                             f.read_exact(&mut alpha_buffer)?;
-                            
+
                             let grayscale = u8::from_be_bytes(grayscale_buffer);
                             let alpha = u8::from_be_bytes(alpha_buffer);
-                            
+
                             Some(sBIT::GrayscaleAlpha{ grayscale, alpha })
                         },
                         ColorType::RGBA => {
@@ -308,7 +308,7 @@ impl PNGDecoder {
                             let mut green_buffer = [0u8];
                             let mut blue_buffer = [0u8];
                             let mut alpha_buffer = [0u8];
-                            
+
                             f.read_exact(&mut red_buffer)?;
                             f.read_exact(&mut green_buffer)?;
                             f.read_exact(&mut blue_buffer)?;

@@ -13,7 +13,7 @@ pub enum FilterType {
     Up = 2,
     /// The pixel is subtracted by the average of the pixel to the left and above
     Average = 3,
-    /// The pixel is subtracted by the pixel that comes out of a prediction algorithm 
+    /// The pixel is subtracted by the pixel that comes out of a prediction algorithm
     Paeth = 4,
 }
 
@@ -123,7 +123,7 @@ pub fn paeth(this_row: &[u8], row_above: Option<&Vec<Vec<u8>>>, chunk_size: u8, 
         for rgba_idx in 0..this_row_chunks[pixel_idx].len() {
             let p: u8 = if pixel_idx == 0 {
                 // the first pixel has no neighbors to the left, so we treat `a` and `c` as 0
-                // paeth_predictor(0, b, 0) = b, so we can just directly set `p = b` 
+                // paeth_predictor(0, b, 0) = b, so we can just directly set `p = b`
                 if is_first_row { 0 } else { above[pixel_idx][rgba_idx] } // above
             } else {
                 let a = this_row_chunks[pixel_idx-1][rgba_idx]; // left

@@ -24,11 +24,11 @@ pub struct IHDR {
 impl IHDR {
     pub fn new(
             width: u32,
-            height: u32, 
-            bit_depth: BitDepth, 
-            color_type: ColorType, 
-            compression_type: CompressionType, 
-            filter_method: FilterMethod, 
+            height: u32,
+            bit_depth: BitDepth,
+            color_type: ColorType,
+            compression_type: CompressionType,
+            filter_method: FilterMethod,
             interlace_method: Interlacing
         ) -> Result<Self, MetadataError> {
 
@@ -36,7 +36,7 @@ impl IHDR {
             // between 0 and 2**31
             return Err(MetadataError::InvalidWidth{ width: width as usize });
         }
-        
+
         if !(0 < height && height < 2u32.pow(31)) {
             // between 0 and 2**31
             return Err(MetadataError::InvalidHeight{ height: height as usize });
@@ -50,7 +50,7 @@ impl IHDR {
             },
             ColorType::RGB => {
                 if ![BitDepth::Eight, BitDepth::Sixteen].contains(&bit_depth) {
-                    return Err(MetadataError::InvalidBitDepthForColorType{ bit_depth, color_type }); 
+                    return Err(MetadataError::InvalidBitDepthForColorType{ bit_depth, color_type });
                 }
             },
             ColorType::Indexed => {
@@ -100,22 +100,22 @@ impl<'a> Chunk<'a> for IHDR {
 
         buf.read_exact(&mut width_buffer)?;
         let width = u32::from_be_bytes(width_buffer);
-        
+
         buf.read_exact(&mut height_buffer)?;
         let height = u32::from_be_bytes(height_buffer);
-        
+
         buf.read_exact(&mut bit_depth_buffer)?;
         let bit_depth = BitDepth::from_u8(u8::from_be_bytes(bit_depth_buffer))?;
-        
+
         buf.read_exact(&mut color_type_buffer)?;
         let color_type = ColorType::from_u8(u8::from_be_bytes(color_type_buffer))?;
-        
+
         buf.read_exact(&mut compression_type_buffer)?;
         let compression_type = CompressionType::from_u8(u8::from_be_bytes(compression_type_buffer))?;
-        
+
         buf.read_exact(&mut filter_method_buffer)?;
         let filter_method = FilterMethod::from_u8(u8::from_be_bytes(filter_method_buffer))?;
-        
+
         buf.read_exact(&mut interlace_method_buffer)?;
         let interlace_method = Interlacing::from_u8(u8::from_be_bytes(interlace_method_buffer))?;
 
@@ -124,7 +124,7 @@ impl<'a> Chunk<'a> for IHDR {
 
     fn as_bytes(self) -> Vec<u8> {
         let mut buffer: Vec<u8> = Vec::with_capacity(4+13+4);
-        
+
         buffer.extend(b"IHDR");
         buffer.extend(&u32_to_be_bytes(self.width));
         buffer.extend(&u32_to_be_bytes(self.height));
@@ -217,7 +217,7 @@ impl PaletteEntry {
     /// Return the RGB value as an array [u8; 3]
     pub const fn to_array(self) -> [u16; 3] {
         [self.red, self.green, self.blue]
-    }   
+    }
 }
 
 /// The PLTE chunk contains a list of palette entries.
@@ -315,7 +315,7 @@ impl<'a> Chunk<'a> for pHYs {
 
     fn as_bytes(self) -> Vec<u8> {
         let mut buffer: Vec<u8> = Vec::with_capacity(4+4+4+1+4);
-        
+
         buffer.extend(b"pHYs");
         buffer.extend(&u32_to_be_bytes(self.pixels_per_unit_x));
         buffer.extend(&u32_to_be_bytes(self.pixels_per_unit_y));
@@ -350,7 +350,7 @@ impl Unit {
             _ => Err(MetadataError::UnrecognizedUnit{ unit }),
         }
     }
-    
+
     pub fn as_u8(&self) -> u8 {
         match self {
             Self::Unknown => 0,
@@ -439,7 +439,7 @@ pub struct cHRM {
     pub blue_y: u32,
 }
 
-/// Contains information for image's [ICC profile](https://en.wikipedia.org/wiki/ICC_profile) 
+/// Contains information for image's [ICC profile](https://en.wikipedia.org/wiki/ICC_profile)
 #[derive(Default, Clone, Hash, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub struct iCCP {
@@ -479,7 +479,7 @@ pub enum sRGB {
     /// Perceptual intent is for images preferring good adaptation to the output
     /// device gamut at the expense of colorimetric accuracy, like photographs
     Perceptual = 0,
-    /// Relative colorimetric intent is for images requiring color appearance 
+    /// Relative colorimetric intent is for images requiring color appearance
     /// matching (relative to the output device white point), like logos
     RelativeColorimetric = 1,
     /// Saturation intent is for images preferring preservation of saturation
