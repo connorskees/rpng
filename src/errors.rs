@@ -11,7 +11,8 @@ pub enum PNGDecodingError {
     FilterError(FilterError),
     IoError(io::Error),
     ZeroLengthIDAT,
-    StringDecodeError(std::str::Utf8Error),
+    Utf8Error(std::str::Utf8Error),
+    StringDecodeError(std::string::FromUtf8Error),
     ChunkError(ChunkError),
 }
 
@@ -164,6 +165,9 @@ impl fmt::Display for PNGDecodingError {
             StringDecodeError(err) => {
                 write!(f, "{}", err)
             },
+            Utf8Error(err) => {
+                write!(f, "{}", err)
+            },
             ChunkError(err) => {
                 write!(f, "{}", err)
             }
@@ -193,7 +197,8 @@ convert_to_decoding_error!(FilterError);
 convert_to_decoding_error!(MetadataError);
 convert_to_decoding_error!(ChunkError);
 convert_to_decoding_error!(IoError, io::Error);
-convert_to_decoding_error!(StringDecodeError, std::str::Utf8Error);
+convert_to_decoding_error!(Utf8Error, std::str::Utf8Error);
+convert_to_decoding_error!(StringDecodeError, std::string::FromUtf8Error);
 
 
 #[derive(Debug)]
