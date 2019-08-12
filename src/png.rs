@@ -15,7 +15,7 @@ use crate::errors::{PNGDecodingError, ChunkError};
 use crate::filter::{self, FilterType};
 use crate::interlacing::{Interlacing};
 
-#[derive(Clone, Hash, PartialEq, Eq)]
+#[derive(Default, Clone, Hash, PartialEq, Eq)]
 pub struct PNG {
     pub ihdr: IHDR,
     pub plte: Option<PLTE>,
