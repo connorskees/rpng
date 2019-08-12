@@ -8,6 +8,7 @@ use crate::common::{BitDepth, ColorType, CompressionType};
 use crate::filter::{FilterMethod};
 use crate::interlacing::{Interlacing};
 use crate::errors::{ChunkError, MetadataError, PNGDecodingError};
+use crate::utils::u32_to_be_bytes;
 
 /// The IHDR chunk contains important metadata for reading the image
 #[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
@@ -613,12 +614,5 @@ impl fmt::Display for AncillaryChunks {
 impl std::default::Default for AncillaryChunks {
     fn default() -> Self {
         AncillaryChunks::new()
-    }
-}
-
-fn u32_to_be_bytes(num: u32) -> [u8; 4] {
-    #[allow(unsafe_code)]
-    unsafe {
-        std::mem::transmute::<u32, [u8; 4]>(num.to_be())
     }
 }
