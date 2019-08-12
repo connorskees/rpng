@@ -18,13 +18,12 @@ use std::io::Write;
 
 #[cfg(test)]
 use serde_json;
-use crate::errors::*;
 
 
 pub use crate::common::*;
-pub use crate::chunks::{IHDR, PLTE, pHYs, Unit, UnrecognizedChunk, AncillaryChunks, ICCProfile};
 pub use crate::decoder::PNGDecoder;
-pub use crate::filter::{FilterMethod, FilterType};
+use crate::errors::*;
+pub use crate::filter::*;
 pub use crate::interlacing::{Interlacing};
 pub use png::PNG;
 
@@ -36,6 +35,7 @@ pub mod chunks;
 mod filter;
 mod interlacing;
 mod png;
+mod utils;
 
 #[allow(dead_code)]
 fn main() -> Result<(), PNGDecodingError> {
