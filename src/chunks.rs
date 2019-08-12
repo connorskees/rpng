@@ -426,6 +426,36 @@ pub struct gAMA {
     pub gamma: u32
 }
 
+impl<'a> Chunk<'a> for gAMA {
+    const IS_CRITICAL: bool = false;
+    const IS_PUBLIC: bool = true;
+    const IS_SAFE_TO_COPY: bool = true;
+    const NAME: &'a str = "gAMA";
+
+    fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PNGDecodingError> {
+        if length != 4 {
+            return Err(ChunkError::InvalidgAMALength.into());
+        }
+        let mut gamma_buffer = [0u8; 4];
+        buf.read_exact(&mut gamma_buffer)?;
+        let gamma = u32::from_be_bytes(gamma_buffer);
+        Ok(gAMA { gamma })
+    }
+
+    fn as_bytes(self) -> Vec<u8> {
+        let mut buffer: Vec<u8> = Vec::with_capacity(4+4+4);
+
+        buffer.extend(b"gAMA");
+        buffer.extend(&u32_to_be_bytes(self.gamma));
+
+        let mut hasher = Hasher::new();
+        hasher.update(&buffer);
+        buffer.extend(&u32_to_be_bytes(hasher.finalize()));
+
+        buffer
+    }
+}
+
 #[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub struct cHRM {
