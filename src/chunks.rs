@@ -144,6 +144,37 @@ impl<'a> Chunk<'a> for IHDR {
     }
 }
 
+#[derive(Debug)]
+pub struct IDAT {
+    raw_data: Vec<u8>,
+    length: u32,
+    data_index: usize,
+}
+
+impl IDAT {
+    pub fn new() -> IDAT {
+        IDAT {
+            raw_data: Vec::new(),
+            length: 0,
+            data_index: 0,
+        }
+    }
+
+    pub fn length(&self) -> u32 {
+        self.length
+    }
+}
+
+// impl Iterator for IDAT {
+//     type Item = u8;
+    
+//     fn next(&mut self) -> Option<u8> {
+//         // return Some(self.raw_data.next());
+//     }
+// }
+
+
+
 pub trait Chunk<'a> {
     const IS_CRITICAL: bool;
     const IS_PUBLIC: bool;

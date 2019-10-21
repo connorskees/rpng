@@ -9,7 +9,7 @@ use std::vec::Vec;
 use flate2::bufread::ZlibDecoder;
 
 use crate::common::{get_bit_at, Bitmap, BitDepth, ColorType, DPI};
-use crate::chunks::{IHDR, PLTE, pHYs, Unit, UnrecognizedChunk, AncillaryChunks, ICCProfile};
+use crate::chunks::{Chunk, IHDR, PLTE, pHYs, Unit, UnrecognizedChunk, AncillaryChunks, ICCProfile};
 use crate::decoder::PNGDecoder;
 use crate::errors::{PNGDecodingError, ChunkError};
 use crate::filter::{self, FilterType};
@@ -34,11 +34,21 @@ impl fmt::Debug for PNG {
     }
 }
 
+impl<'a> PNG {
+    pub fn drop_chunk<T: 'a + Chunk<'a>>(chunk: T) {
+
+    }
+}
+
 impl PNG {
     pub fn open<S: AsRef<Path>>(file_path: S) -> Result<Self, PNGDecodingError> {
         let file_size: usize = fs::metadata(&file_path)?.len() as usize;
         PNGDecoder::read(BufReader::with_capacity(file_size, File::open(file_path)?))
     }
+
+    
+
+    
 
     pub fn pixels(&self) -> Result<Bitmap<u16>, PNGDecodingError> {
         let mut buffer: Vec<u8> = Vec::new();
@@ -224,4 +234,26 @@ fn combine_u8s_to_u16(bitmap: Vec<Vec<Vec<u8>>>) -> Vec<Vec<Vec<u16>>> {
         }
     }
     b16
+}
+
+pub struct PNGBuilder {
+    inner: PNG
+}
+
+impl PNGBuilder {
+    pub fn new() -> Self {
+        PNGBuilder {
+            inner: std::default::Default::default()
+        }
+    }
+
+    pub fn IHDR(mut self, ihdr: IHDR) -> PNGBuilder {
+        self.inner.ihdr = ihdr;
+        self
+    }
+
+    pub fn pHYs(mut self, pHYs: pHYs) -> PNGBuilder {
+        self.inner.ancillary_chunks.pHYs = Some(pHYs);
+        self
+    }
 }

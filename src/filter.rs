@@ -71,6 +71,21 @@ impl std::default::Default for FilterMethod {
     }
 }
 
+// fn filter_preprocessing(this_row: &[u8], chunk_size: u8) -> Vec<Vec<u8>> {
+//     this_row.chunks(chunk_size as usize).map(Vec::from).collect()
+// }
+
+// / Undo the applied filter. This assumes the filter byte has already been removed from the row
+// pub fn undo_filter(filter_type: FilterType, this_row: &[u8], row_above: Option<&Vec<Vec<u8>>>, chunk_size: u8) -> Vec<Vec<u8>> {
+//     match filter_type {
+//         FilterType::None => this_row.chunks(chunk_size as usize).map(Vec::from).collect(),
+//         FilterType::Sub => sub(&this_row, chunk_size, true),
+//         FilterType::Up => up(&this_row, row_above, chunk_size, true),
+//         FilterType::Average => average(&this_row, row_above, chunk_size),
+//         FilterType::Paeth => paeth(&this_row, row_above, chunk_size, true),
+//     }
+// }
+
 pub fn sub(this_row: &[u8], chunk_size: u8, reverse: bool) -> Vec<Vec<u8>> {
     let mut chunks: Vec<Vec<u8>> = this_row.chunks(chunk_size as usize).map(Vec::from).collect();
     for pixel_idx in 1..chunks.len() { // start at 1 because first pixel (0th) is unchanged

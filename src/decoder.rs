@@ -358,9 +358,9 @@ impl PNGDecoder {
             f.read_exact(&mut crc)?;
         }
 
-        // idat = match ihdr.interlace_method {
-        //     Interlacing::None => idat,
-        //     Interlacing::Adam7 => Interlacing::adam7(idat)
+        // match ihdr.interlace_method {
+        //     Interlacing::None => (),//idat,
+        //     Interlacing::Adam7 => Interlacing::adam7(ihdr.width, ihdr.height, idat.clone())
         // };
 
         Ok(PNG {

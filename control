@@ -1,0 +1,716 @@
+
+running 2 tests
+test filter::tests::test_paeth_predictor ... ignored
+test test::test ... ignored
+
+test result: ok. 0 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out
+
+
+running 2 tests
+test filter::tests::test_paeth_predictor ... ignored
+test test::test ... ignored
+
+test result: ok. 0 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out
+
+
+running 161 tests
+test pixels::basi0g01 ... FAILED
+test pixels::basi0g02 ... FAILED
+test pixels::basi0g04 ... FAILED
+test pixels::basi0g08 ... FAILED
+test pixels::basi0g16 ... FAILED
+test pixels::basi2c08 ... FAILED
+test pixels::basi2c16 ... FAILED
+test pixels::basi3p01 ... FAILED
+test pixels::basi3p02 ... FAILED
+test pixels::basi3p04 ... FAILED
+test pixels::basi3p08 ... FAILED
+test pixels::basi4a08 ... FAILED
+test pixels::basi4a16 ... FAILED
+test pixels::basi6a08 ... FAILED
+test pixels::basi6a16 ... FAILED
+test pixels::basn0g01 ... bench:     142,933 ns/iter (+/- 32,996)
+test pixels::basn0g02 ... FAILED
+test pixels::basn0g04 ... FAILED
+test pixels::basn0g08 ... bench:     168,495 ns/iter (+/- 19,828)
+test pixels::basn0g16 ... bench:     295,533 ns/iter (+/- 8,628)
+test pixels::basn2c08 ... bench:     177,974 ns/iter (+/- 3,264)
+test pixels::basn2c16 ... FAILED
+test pixels::basn3p01 ... bench:     314,830 ns/iter (+/- 8,679)
+test pixels::basn3p02 ... FAILED
+test pixels::basn3p04 ... FAILED
+test pixels::basn3p08 ... bench:     348,783 ns/iter (+/- 12,368)
+test pixels::basn4a08 ... bench:     170,755 ns/iter (+/- 7,907)
+test pixels::basn4a16 ... bench:     371,693 ns/iter (+/- 159,743)
+test pixels::basn6a08 ... bench:     195,239 ns/iter (+/- 51,766)
+test pixels::basn6a16 ... bench:     446,428 ns/iter (+/- 109,639)
+test pixels::bgai4a08 ... FAILED
+test pixels::bgai4a16 ... FAILED
+test pixels::bgan6a08 ... bench:     185,193 ns/iter (+/- 6,993)
+test pixels::bgan6a16 ... bench:     468,875 ns/iter (+/- 123,658)
+test pixels::bgbn4a08 ... bench:     173,155 ns/iter (+/- 57,739)
+test pixels::bggn4a16 ... bench:     371,831 ns/iter (+/- 172,291)
+test pixels::bgwn6a08 ... bench:     185,308 ns/iter (+/- 72,498)
+test pixels::bgyn6a16 ... bench:     658,297 ns/iter (+/- 541,005)
+test pixels::ccwn2c08 ... bench:     233,005 ns/iter (+/- 106,957)
+test pixels::ccwn3p08 ... bench:     346,548 ns/iter (+/- 149,447)
+test pixels::cdfn2c08 ... bench:      63,095 ns/iter (+/- 12,719)
+test pixels::cdhn2c08 ... bench:      53,930 ns/iter (+/- 21,771)
+test pixels::cdsn2c08 ... bench:      20,760 ns/iter (+/- 14,527)
+test pixels::cdun2c08 ... bench:     182,440 ns/iter (+/- 70,837)
+test pixels::ch1n3p04 ... FAILED
+test pixels::ch2n3p08 ... bench:     567,608 ns/iter (+/- 613,402)
+test pixels::cm0n0g04 ... FAILED
+test pixels::cm7n0g04 ... FAILED
+test pixels::cm9n0g04 ... FAILED
+test pixels::cs3n2c16 ... FAILED
+test pixels::cs3n3p08 ... bench:     386,956 ns/iter (+/- 85,441)
+test pixels::cs5n2c08 ... bench:     178,652 ns/iter (+/- 20,759)
+test pixels::cs5n3p08 ... bench:     338,100 ns/iter (+/- 17,689)
+test pixels::cs8n2c08 ... bench:     188,067 ns/iter (+/- 135,377)
+test pixels::cs8n3p08 ... bench:     338,047 ns/iter (+/- 83,857)
+test pixels::ct0n0g04 ... FAILED
+test pixels::ct1n0g04 ... FAILED
+test pixels::cten0g04 ... FAILED
+test pixels::ctfn0g04 ... FAILED
+test pixels::ctgn0g04 ... FAILED
+test pixels::cthn0g04 ... FAILED
+test pixels::ctjn0g04 ... FAILED
+test pixels::ctzn0g04 ... FAILED
+test pixels::exif2c08 ... bench:     164,445 ns/iter (+/- 43,995)
+test pixels::f00n0g08 ... bench:     158,014 ns/iter (+/- 14,306)
+test pixels::f00n2c08 ... bench:     184,805 ns/iter (+/- 106,041)
+test pixels::f01n0g08 ... bench:     160,429 ns/iter (+/- 13,830)
+test pixels::f01n2c08 ... bench:     172,693 ns/iter (+/- 13,452)
+test pixels::f02n0g08 ... bench:     166,371 ns/iter (+/- 136,618)
+test pixels::f02n2c08 ... bench:     191,952 ns/iter (+/- 93,004)
+test pixels::f03n0g08 ... bench:     164,518 ns/iter (+/- 26,777)
+test pixels::f03n2c08 ... bench:     179,823 ns/iter (+/- 74,478)
+test pixels::f04n0g08 ... bench:     167,128 ns/iter (+/- 5,124)
+test pixels::f04n2c08 ... bench:     192,787 ns/iter (+/- 6,491)
+test pixels::f99n0g04 ... FAILED
+test pixels::g03n0g16 ... bench:     312,806 ns/iter (+/- 81,362)
+test pixels::g03n2c08 ... bench:     181,394 ns/iter (+/- 50,671)
+test pixels::g03n3p04 ... FAILED
+test pixels::g04n0g16 ... bench:     319,947 ns/iter (+/- 145,869)
+test pixels::g04n2c08 ... bench:     232,960 ns/iter (+/- 272,883)
+test pixels::g04n3p04 ... FAILED
+test pixels::g05n0g16 ... bench:     391,341 ns/iter (+/- 441,710)
+test pixels::g05n2c08 ... bench:     226,357 ns/iter (+/- 210,538)
+test pixels::g05n3p04 ... FAILED
+test pixels::g07n0g16 ... bench:     312,889 ns/iter (+/- 90,229)
+test pixels::g07n2c08 ... bench:     179,048 ns/iter (+/- 2,456)
+test pixels::g07n3p04 ... FAILED
+test pixels::g10n0g16 ... bench:     308,815 ns/iter (+/- 8,333)
+test pixels::g10n2c08 ... bench:     179,990 ns/iter (+/- 10,590)
+test pixels::g10n3p04 ... FAILED
+test pixels::g25n0g16 ... bench:     325,231 ns/iter (+/- 74,030)
+test pixels::g25n2c08 ... bench:     181,387 ns/iter (+/- 12,216)
+test pixels::g25n3p04 ... FAILED
+test pixels::oi1n0g16 ... bench:     295,481 ns/iter (+/- 21,217)
+test pixels::oi1n2c16 ... FAILED
+test pixels::oi2n0g16 ... bench:     465,058 ns/iter (+/- 541,435)
+test pixels::oi2n2c16 ... FAILED
+test pixels::oi4n0g16 ... bench:     313,765 ns/iter (+/- 70,802)
+test pixels::oi4n2c16 ... FAILED
+test pixels::oi9n0g16 ... bench:     295,355 ns/iter (+/- 59,351)
+test pixels::oi9n2c16 ... FAILED
+test pixels::pp0n2c16 ... FAILED
+test pixels::pp0n6a08 ... bench:     233,088 ns/iter (+/- 233,182)
+test pixels::ps1n0g08 ... bench:     170,116 ns/iter (+/- 84,225)
+test pixels::ps1n2c16 ... FAILED
+test pixels::ps2n0g08 ... bench:     163,606 ns/iter (+/- 24,720)
+test pixels::ps2n2c16 ... FAILED
+test pixels::s01i3p01 ... bench:       5,421 ns/iter (+/- 1,338)
+test pixels::s01n3p01 ... bench:       3,896 ns/iter (+/- 314)
+test pixels::s02i3p01 ... bench:      16,072 ns/iter (+/- 2,518)
+test pixels::s02n3p01 ... bench:       7,390 ns/iter (+/- 308)
+test pixels::s03i3p01 ... bench:      32,959 ns/iter (+/- 1,466)
+test pixels::s03n3p01 ... bench:      10,088 ns/iter (+/- 564)
+test pixels::s04i3p01 ... bench:      46,178 ns/iter (+/- 3,230)
+test pixels::s04n3p01 ... bench:      12,735 ns/iter (+/- 3,753)
+test pixels::s05i3p02 ... bench:      19,912 ns/iter (+/- 476)
+test pixels::s05n3p02 ... FAILED
+test pixels::s06i3p02 ... bench:      33,511 ns/iter (+/- 7,674)
+test pixels::s06n3p02 ... FAILED
+test pixels::s07i3p02 ... bench:      37,824 ns/iter (+/- 2,498)
+test pixels::s07n3p02 ... FAILED
+test pixels::s08i3p02 ... bench:      50,576 ns/iter (+/- 738)
+test pixels::s08n3p02 ... FAILED
+test pixels::s09i3p02 ... bench:      63,095 ns/iter (+/- 4,700)
+test pixels::s09n3p02 ... FAILED
+test pixels::s32i3p04 ... FAILED
+test pixels::s32n3p04 ... FAILED
+test pixels::s33i3p04 ... FAILED
+test pixels::s33n3p04 ... FAILED
+test pixels::s34i3p04 ... FAILED
+test pixels::s34n3p04 ... FAILED
+test pixels::s35i3p04 ... FAILED
+test pixels::s35n3p04 ... FAILED
+test pixels::s36i3p04 ... FAILED
+test pixels::s36n3p04 ... FAILED
+test pixels::s37i3p04 ... FAILED
+test pixels::s37n3p04 ... FAILED
+test pixels::s38i3p04 ... FAILED
+test pixels::s38n3p04 ... FAILED
+test pixels::s39i3p04 ... FAILED
+test pixels::s39n3p04 ... FAILED
+test pixels::s40i3p04 ... FAILED
+test pixels::s40n3p04 ... FAILED
+test pixels::tbbn0g04 ... FAILED
+test pixels::tbbn2c16 ... FAILED
+test pixels::tbbn3p08 ... bench:     336,515 ns/iter (+/- 5,487)
+test pixels::tbgn2c16 ... FAILED
+test pixels::tbgn3p08 ... bench:     338,470 ns/iter (+/- 13,763)
+test pixels::tbrn2c08 ... bench:     166,230 ns/iter (+/- 5,282)
+test pixels::tbwn0g16 ... bench:     291,470 ns/iter (+/- 6,628)
+test pixels::tbwn3p08 ... bench:     366,945 ns/iter (+/- 418,761)
+test pixels::tbyn3p08 ... bench:     401,281 ns/iter (+/- 150,112)
+test pixels::tm3n3p02 ... FAILED
+test pixels::tp0n0g08 ... bench:     155,571 ns/iter (+/- 67,504)
+test pixels::tp0n2c08 ... bench:     167,323 ns/iter (+/- 53,139)
+test pixels::tp0n3p08 ... bench:     343,753 ns/iter (+/- 80,451)
+test pixels::tp1n3p08 ... bench:     404,858 ns/iter (+/- 193,447)
+test pixels::z00n2c08 ... bench:     174,725 ns/iter (+/- 10,943)
+test pixels::z03n2c08 ... bench:     178,076 ns/iter (+/- 2,850)
+test pixels::z06n2c08 ... bench:     178,045 ns/iter (+/- 4,379)
+test pixels::z09n2c08 ... bench:     178,340 ns/iter (+/- 10,330)
+
+failures:
+
+---- pixels::basi0g01 stdout ----
+interlaced length 192
+thread 'main' panicked at 'index out of bounds: the len is 9 but the index is 9', /rustc/07e0c3651ce2a7b326f7678e135d8d5bbbbe5d18\src\libcore\slice\mod.rs:2681:10
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace.
+
+---- pixels::basi0g02 stdout ----
+interlaced length 316
+thread 'main' panicked at 'index out of bounds: the len is 9 but the index is 9', /rustc/07e0c3651ce2a7b326f7678e135d8d5bbbbe5d18\src\libcore\slice\mod.rs:2681:10
+
+---- pixels::basi0g04 stdout ----
+interlaced length 572
+thread 'main' panicked at 'index out of bounds: the len is 9 but the index is 9', /rustc/07e0c3651ce2a7b326f7678e135d8d5bbbbe5d18\src\libcore\slice\mod.rs:2681:10
+
+---- pixels::basi0g08 stdout ----
+interlaced length 1084
+thread 'main' panicked at 'index out of bounds: the len is 9 but the index is 9', /rustc/07e0c3651ce2a7b326f7678e135d8d5bbbbe5d18\src\libcore\slice\mod.rs:2681:10
+
+---- pixels::basi0g16 stdout ----
+interlaced length 2108
+thread 'main' panicked at 'index out of bounds: the len is 9 but the index is 9', /rustc/07e0c3651ce2a7b326f7678e135d8d5bbbbe5d18\src\libcore\slice\mod.rs:2681:10
+
+---- pixels::basi2c08 stdout ----
+interlaced length 3132
+thread 'main' panicked at 'index out of bounds: the len is 9 but the index is 9', /rustc/07e0c3651ce2a7b326f7678e135d8d5bbbbe5d18\src\libcore\slice\mod.rs:2681:10
+
+---- pixels::basi2c16 stdout ----
+interlaced length 6204
+thread 'main' panicked at 'index out of bounds: the len is 9 but the index is 9', /rustc/07e0c3651ce2a7b326f7678e135d8d5bbbbe5d18\src\libcore\slice\mod.rs:2681:10
+
+---- pixels::basi3p01 stdout ----
+interlaced length 192
+thread 'main' panicked at 'index out of bounds: the len is 9 but the index is 9', /rustc/07e0c3651ce2a7b326f7678e135d8d5bbbbe5d18\src\libcore\slice\mod.rs:2681:10
+
+---- pixels::basi3p02 stdout ----
+interlaced length 316
+thread 'main' panicked at 'index out of bounds: the len is 9 but the index is 9', /rustc/07e0c3651ce2a7b326f7678e135d8d5bbbbe5d18\src\libcore\slice\mod.rs:2681:10
+
+---- pixels::basi3p04 stdout ----
+interlaced length 572
+thread 'main' panicked at 'index out of bounds: the len is 9 but the index is 9', /rustc/07e0c3651ce2a7b326f7678e135d8d5bbbbe5d18\src\libcore\slice\mod.rs:2681:10
+
+---- pixels::basi3p08 stdout ----
+interlaced length 1084
+thread 'main' panicked at 'index out of bounds: the len is 9 but the index is 9', /rustc/07e0c3651ce2a7b326f7678e135d8d5bbbbe5d18\src\libcore\slice\mod.rs:2681:10
+
+---- pixels::basi4a08 stdout ----
+interlaced length 2108
+thread 'main' panicked at 'index out of bounds: the len is 9 but the index is 9', /rustc/07e0c3651ce2a7b326f7678e135d8d5bbbbe5d18\src\libcore\slice\mod.rs:2681:10
+
+---- pixels::basi4a16 stdout ----
+interlaced length 4156
+thread 'main' panicked at 'index out of bounds: the len is 9 but the index is 9', /rustc/07e0c3651ce2a7b326f7678e135d8d5bbbbe5d18\src\libcore\slice\mod.rs:2681:10
+
+---- pixels::basi6a08 stdout ----
+interlaced length 4156
+thread 'main' panicked at 'index out of bounds: the len is 9 but the index is 9', /rustc/07e0c3651ce2a7b326f7678e135d8d5bbbbe5d18\src\libcore\slice\mod.rs:2681:10
+
+---- pixels::basi6a16 stdout ----
+interlaced length 8252
+thread 'main' panicked at 'index out of bounds: the len is 9 but the index is 9', /rustc/07e0c3651ce2a7b326f7678e135d8d5bbbbe5d18\src\libcore\slice\mod.rs:2681:10
+
+---- pixels::basn0g02 stdout ----
+interlaced length 288
+deinterlaced length 0
+row length 9
+num of rows 32
+thread 'main' panicked at 'not yet implemented', src/main.rs:177:30
+
+---- pixels::basn0g04 stdout ----
+interlaced length 544
+deinterlaced length 0
+row length 17
+num of rows 32
+thread 'main' panicked at 'not yet implemented', src/main.rs:178:31
+
+---- pixels::basn2c16 stdout ----
+interlaced length 6176
+deinterlaced length 0
+row length 193
+num of rows 32
+thread 'main' panicked at 'index out of bounds: the len is 3 but the index is 3', /rustc/07e0c3651ce2a7b326f7678e135d8d5bbbbe5d18\src\libcore\slice\mod.rs:2681:10
+
+---- pixels::basn3p02 stdout ----
+interlaced length 288
+deinterlaced length 0
+row length 9
+num of rows 32
+thread 'main' panicked at 'not yet implemented', src/main.rs:177:30
+
+---- pixels::basn3p04 stdout ----
+interlaced length 544
+deinterlaced length 0
+row length 17
+num of rows 32
+thread 'main' panicked at 'not yet implemented', src/main.rs:178:31
+
+---- pixels::bgai4a08 stdout ----
+interlaced length 2108
+thread 'main' panicked at 'index out of bounds: the len is 9 but the index is 9', /rustc/07e0c3651ce2a7b326f7678e135d8d5bbbbe5d18\src\libcore\slice\mod.rs:2681:10
+
+---- pixels::bgai4a16 stdout ----
+interlaced length 4156
+thread 'main' panicked at 'index out of bounds: the len is 9 but the index is 9', /rustc/07e0c3651ce2a7b326f7678e135d8d5bbbbe5d18\src\libcore\slice\mod.rs:2681:10
+
+---- pixels::ch1n3p04 stdout ----
+interlaced length 544
+deinterlaced length 0
+row length 17
+num of rows 32
+thread 'main' panicked at 'not yet implemented', src/main.rs:178:31
+
+---- pixels::cm0n0g04 stdout ----
+interlaced length 544
+deinterlaced length 0
+row length 17
+num of rows 32
+thread 'main' panicked at 'not yet implemented', src/main.rs:178:31
+
+---- pixels::cm7n0g04 stdout ----
+interlaced length 544
+deinterlaced length 0
+row length 17
+num of rows 32
+thread 'main' panicked at 'not yet implemented', src/main.rs:178:31
+
+---- pixels::cm9n0g04 stdout ----
+interlaced length 544
+deinterlaced length 0
+row length 17
+num of rows 32
+thread 'main' panicked at 'not yet implemented', src/main.rs:178:31
+
+---- pixels::cs3n2c16 stdout ----
+interlaced length 6176
+deinterlaced length 0
+row length 193
+num of rows 32
+thread 'main' panicked at 'index out of bounds: the len is 3 but the index is 3', /rustc/07e0c3651ce2a7b326f7678e135d8d5bbbbe5d18\src\libcore\slice\mod.rs:2681:10
+
+---- pixels::ct0n0g04 stdout ----
+interlaced length 544
+deinterlaced length 0
+row length 17
+num of rows 32
+thread 'main' panicked at 'not yet implemented', src/main.rs:178:31
+
+---- pixels::ct1n0g04 stdout ----
+interlaced length 544
+deinterlaced length 0
+row length 17
+num of rows 32
+thread 'main' panicked at 'not yet implemented', src/main.rs:178:31
+
+---- pixels::cten0g04 stdout ----
+interlaced length 544
+deinterlaced length 0
+row length 17
+num of rows 32
+thread 'main' panicked at 'not yet implemented', src/main.rs:178:31
+
+---- pixels::ctfn0g04 stdout ----
+interlaced length 544
+deinterlaced length 0
+row length 17
+num of rows 32
+thread 'main' panicked at 'not yet implemented', src/main.rs:178:31
+
+---- pixels::ctgn0g04 stdout ----
+interlaced length 544
+deinterlaced length 0
+row length 17
+num of rows 32
+thread 'main' panicked at 'not yet implemented', src/main.rs:178:31
+
+---- pixels::cthn0g04 stdout ----
+interlaced length 544
+deinterlaced length 0
+row length 17
+num of rows 32
+thread 'main' panicked at 'not yet implemented', src/main.rs:178:31
+
+---- pixels::ctjn0g04 stdout ----
+interlaced length 544
+deinterlaced length 0
+row length 17
+num of rows 32
+thread 'main' panicked at 'not yet implemented', src/main.rs:178:31
+
+---- pixels::ctzn0g04 stdout ----
+interlaced length 544
+deinterlaced length 0
+row length 17
+num of rows 32
+thread 'main' panicked at 'not yet implemented', src/main.rs:178:31
+
+---- pixels::f99n0g04 stdout ----
+interlaced length 544
+deinterlaced length 0
+row length 17
+num of rows 32
+thread 'main' panicked at 'not yet implemented', src/main.rs:178:31
+
+---- pixels::g03n3p04 stdout ----
+interlaced length 544
+deinterlaced length 0
+row length 17
+num of rows 32
+thread 'main' panicked at 'not yet implemented', src/main.rs:178:31
+
+---- pixels::g04n3p04 stdout ----
+interlaced length 544
+deinterlaced length 0
+row length 17
+num of rows 32
+thread 'main' panicked at 'not yet implemented', src/main.rs:178:31
+
+---- pixels::g05n3p04 stdout ----
+interlaced length 544
+deinterlaced length 0
+row length 17
+num of rows 32
+thread 'main' panicked at 'not yet implemented', src/main.rs:178:31
+
+---- pixels::g07n3p04 stdout ----
+interlaced length 544
+deinterlaced length 0
+row length 17
+num of rows 32
+thread 'main' panicked at 'not yet implemented', src/main.rs:178:31
+
+---- pixels::g10n3p04 stdout ----
+interlaced length 544
+deinterlaced length 0
+row length 17
+num of rows 32
+thread 'main' panicked at 'not yet implemented', src/main.rs:178:31
+
+---- pixels::g25n3p04 stdout ----
+interlaced length 544
+deinterlaced length 0
+row length 17
+num of rows 32
+thread 'main' panicked at 'not yet implemented', src/main.rs:178:31
+
+---- pixels::oi1n2c16 stdout ----
+interlaced length 6176
+deinterlaced length 0
+row length 193
+num of rows 32
+thread 'main' panicked at 'index out of bounds: the len is 3 but the index is 3', /rustc/07e0c3651ce2a7b326f7678e135d8d5bbbbe5d18\src\libcore\slice\mod.rs:2681:10
+
+---- pixels::oi2n2c16 stdout ----
+interlaced length 6176
+deinterlaced length 0
+row length 193
+num of rows 32
+thread 'main' panicked at 'index out of bounds: the len is 3 but the index is 3', /rustc/07e0c3651ce2a7b326f7678e135d8d5bbbbe5d18\src\libcore\slice\mod.rs:2681:10
+
+---- pixels::oi4n2c16 stdout ----
+interlaced length 6176
+deinterlaced length 0
+row length 193
+num of rows 32
+thread 'main' panicked at 'index out of bounds: the len is 3 but the index is 3', /rustc/07e0c3651ce2a7b326f7678e135d8d5bbbbe5d18\src\libcore\slice\mod.rs:2681:10
+
+---- pixels::oi9n2c16 stdout ----
+interlaced length 6176
+deinterlaced length 0
+row length 193
+num of rows 32
+thread 'main' panicked at 'index out of bounds: the len is 3 but the index is 3', /rustc/07e0c3651ce2a7b326f7678e135d8d5bbbbe5d18\src\libcore\slice\mod.rs:2681:10
+
+---- pixels::pp0n2c16 stdout ----
+interlaced length 6176
+deinterlaced length 0
+row length 193
+num of rows 32
+thread 'main' panicked at 'index out of bounds: the len is 3 but the index is 3', /rustc/07e0c3651ce2a7b326f7678e135d8d5bbbbe5d18\src\libcore\slice\mod.rs:2681:10
+
+---- pixels::ps1n2c16 stdout ----
+interlaced length 6176
+deinterlaced length 0
+row length 193
+num of rows 32
+thread 'main' panicked at 'index out of bounds: the len is 3 but the index is 3', /rustc/07e0c3651ce2a7b326f7678e135d8d5bbbbe5d18\src\libcore\slice\mod.rs:2681:10
+
+---- pixels::ps2n2c16 stdout ----
+interlaced length 6176
+deinterlaced length 0
+row length 193
+num of rows 32
+thread 'main' panicked at 'index out of bounds: the len is 3 but the index is 3', /rustc/07e0c3651ce2a7b326f7678e135d8d5bbbbe5d18\src\libcore\slice\mod.rs:2681:10
+
+---- pixels::s05n3p02 stdout ----
+interlaced length 15
+deinterlaced length 0
+row length 3
+num of rows 5
+thread 'main' panicked at 'not yet implemented', src/main.rs:177:30
+
+---- pixels::s06n3p02 stdout ----
+interlaced length 18
+deinterlaced length 0
+row length 3
+num of rows 6
+thread 'main' panicked at 'not yet implemented', src/main.rs:177:30
+
+---- pixels::s07n3p02 stdout ----
+interlaced length 21
+deinterlaced length 0
+row length 3
+num of rows 7
+thread 'main' panicked at 'not yet implemented', src/main.rs:177:30
+
+---- pixels::s08n3p02 stdout ----
+interlaced length 24
+deinterlaced length 0
+row length 3
+num of rows 8
+thread 'main' panicked at 'not yet implemented', src/main.rs:177:30
+
+---- pixels::s09n3p02 stdout ----
+interlaced length 36
+deinterlaced length 0
+row length 4
+num of rows 9
+thread 'main' panicked at 'not yet implemented', src/main.rs:177:30
+
+---- pixels::s32i3p04 stdout ----
+interlaced length 572
+thread 'main' panicked at 'index out of bounds: the len is 9 but the index is 9', /rustc/07e0c3651ce2a7b326f7678e135d8d5bbbbe5d18\src\libcore\slice\mod.rs:2681:10
+
+---- pixels::s32n3p04 stdout ----
+interlaced length 544
+deinterlaced length 0
+row length 17
+num of rows 32
+thread 'main' panicked at 'not yet implemented', src/main.rs:178:31
+
+---- pixels::s33i3p04 stdout ----
+interlaced length 625
+thread 'main' panicked at 'index out of bounds: the len is 9 but the index is 9', /rustc/07e0c3651ce2a7b326f7678e135d8d5bbbbe5d18\src\libcore\slice\mod.rs:2681:10
+
+---- pixels::s33n3p04 stdout ----
+interlaced length 594
+deinterlaced length 0
+row length 18
+num of rows 33
+thread 'main' panicked at 'not yet implemented', src/main.rs:178:31
+
+---- pixels::s34i3p04 stdout ----
+interlaced length 660
+thread 'main' panicked at 'index out of bounds: the len is 9 but the index is 9', /rustc/07e0c3651ce2a7b326f7678e135d8d5bbbbe5d18\src\libcore\slice\mod.rs:2681:10
+
+---- pixels::s34n3p04 stdout ----
+interlaced length 612
+deinterlaced length 0
+row length 18
+num of rows 34
+thread 'main' panicked at 'not yet implemented', src/main.rs:178:31
+
+---- pixels::s35i3p04 stdout ----
+interlaced length 706
+thread 'main' panicked at 'index 38 out of range for slice of length 37', src\libcore\slice\mod.rs:2555:5
+
+---- pixels::s35n3p04 stdout ----
+interlaced length 665
+deinterlaced length 0
+row length 19
+num of rows 35
+thread 'main' panicked at 'not yet implemented', src/main.rs:178:31
+
+---- pixels::s36i3p04 stdout ----
+interlaced length 725
+thread 'main' panicked at 'index 38 out of range for slice of length 37', src\libcore\slice\mod.rs:2555:5
+
+---- pixels::s36n3p04 stdout ----
+interlaced length 684
+deinterlaced length 0
+row length 19
+num of rows 36
+thread 'main' panicked at 'not yet implemented', src/main.rs:178:31
+
+---- pixels::s37i3p04 stdout ----
+interlaced length 779
+thread 'main' panicked at 'index 38 out of range for slice of length 37', src\libcore\slice\mod.rs:2555:5
+
+---- pixels::s37n3p04 stdout ----
+interlaced length 740
+deinterlaced length 0
+row length 20
+num of rows 37
+thread 'main' panicked at 'not yet implemented', src/main.rs:178:31
+
+---- pixels::s38i3p04 stdout ----
+interlaced length 818
+thread 'main' panicked at 'index 38 out of range for slice of length 37', src\libcore\slice\mod.rs:2555:5
+
+---- pixels::s38n3p04 stdout ----
+interlaced length 760
+deinterlaced length 0
+row length 20
+num of rows 38
+thread 'main' panicked at 'not yet implemented', src/main.rs:178:31
+
+---- pixels::s39i3p04 stdout ----
+interlaced length 859
+thread 'main' panicked at 'index 38 out of range for slice of length 37', src\libcore\slice\mod.rs:2555:5
+
+---- pixels::s39n3p04 stdout ----
+interlaced length 819
+deinterlaced length 0
+row length 21
+num of rows 39
+thread 'main' panicked at 'not yet implemented', src/main.rs:178:31
+
+---- pixels::s40i3p04 stdout ----
+interlaced length 880
+thread 'main' panicked at 'index 38 out of range for slice of length 37', src\libcore\slice\mod.rs:2555:5
+
+---- pixels::s40n3p04 stdout ----
+interlaced length 840
+deinterlaced length 0
+row length 21
+num of rows 40
+thread 'main' panicked at 'not yet implemented', src/main.rs:178:31
+
+---- pixels::tbbn0g04 stdout ----
+interlaced length 544
+deinterlaced length 0
+row length 17
+num of rows 32
+thread 'main' panicked at 'not yet implemented', src/main.rs:178:31
+
+---- pixels::tbbn2c16 stdout ----
+interlaced length 6176
+deinterlaced length 0
+row length 193
+num of rows 32
+thread 'main' panicked at 'index out of bounds: the len is 3 but the index is 3', /rustc/07e0c3651ce2a7b326f7678e135d8d5bbbbe5d18\src\libcore\slice\mod.rs:2681:10
+
+---- pixels::tbgn2c16 stdout ----
+interlaced length 6176
+deinterlaced length 0
+row length 193
+num of rows 32
+thread 'main' panicked at 'index out of bounds: the len is 3 but the index is 3', /rustc/07e0c3651ce2a7b326f7678e135d8d5bbbbe5d18\src\libcore\slice\mod.rs:2681:10
+
+---- pixels::tm3n3p02 stdout ----
+interlaced length 288
+deinterlaced length 0
+row length 9
+num of rows 32
+thread 'main' panicked at 'not yet implemented', src/main.rs:177:30
+
+
+failures:
+    pixels::basi0g01
+    pixels::basi0g02
+    pixels::basi0g04
+    pixels::basi0g08
+    pixels::basi0g16
+    pixels::basi2c08
+    pixels::basi2c16
+    pixels::basi3p01
+    pixels::basi3p02
+    pixels::basi3p04
+    pixels::basi3p08
+    pixels::basi4a08
+    pixels::basi4a16
+    pixels::basi6a08
+    pixels::basi6a16
+    pixels::basn0g02
+    pixels::basn0g04
+    pixels::basn2c16
+    pixels::basn3p02
+    pixels::basn3p04
+    pixels::bgai4a08
+    pixels::bgai4a16
+    pixels::ch1n3p04
+    pixels::cm0n0g04
+    pixels::cm7n0g04
+    pixels::cm9n0g04
+    pixels::cs3n2c16
+    pixels::ct0n0g04
+    pixels::ct1n0g04
+    pixels::cten0g04
+    pixels::ctfn0g04
+    pixels::ctgn0g04
+    pixels::cthn0g04
+    pixels::ctjn0g04
+    pixels::ctzn0g04
+    pixels::f99n0g04
+    pixels::g03n3p04
+    pixels::g04n3p04
+    pixels::g05n3p04
+    pixels::g07n3p04
+    pixels::g10n3p04
+    pixels::g25n3p04
+    pixels::oi1n2c16
+    pixels::oi2n2c16
+    pixels::oi4n2c16
+    pixels::oi9n2c16
+    pixels::pp0n2c16
+    pixels::ps1n2c16
+    pixels::ps2n2c16
+    pixels::s05n3p02
+    pixels::s06n3p02
+    pixels::s07n3p02
+    pixels::s08n3p02
+    pixels::s09n3p02
+    pixels::s32i3p04
+    pixels::s32n3p04
+    pixels::s33i3p04
+    pixels::s33n3p04
+    pixels::s34i3p04
+    pixels::s34n3p04
+    pixels::s35i3p04
+    pixels::s35n3p04
+    pixels::s36i3p04
+    pixels::s36n3p04
+    pixels::s37i3p04
+    pixels::s37n3p04
+    pixels::s38i3p04
+    pixels::s38n3p04
+    pixels::s39i3p04
+    pixels::s39n3p04
+    pixels::s40i3p04
+    pixels::s40n3p04
+    pixels::tbbn0g04
+    pixels::tbbn2c16
+    pixels::tbgn2c16
+    pixels::tm3n3p02
+
+test result: FAILED. 0 passed; 76 failed; 0 ignored; 85 measured; 0 filtered out
+

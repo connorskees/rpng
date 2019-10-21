@@ -99,6 +99,15 @@ impl std::default::Default for CompressionType {
     }
 }
 
+// #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+// pub enum Pixel {
+//     RGB{ red: u16, green: u16, blue: u16 },
+//     // BGR{ blue: u16, green: u16, red: u16 },
+//     RGBA{ red: u16, green: u16, blue: u16, alpha: u16 },
+//     // BGRA{ blue: u16, green: u16, red: u16, alpha: u16 },
+//     // ARGB{ alpha: u16, red: u16, green: u16, blue: u16 },
+// }
+
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 #[repr(u8)]
 pub enum ColorType {
