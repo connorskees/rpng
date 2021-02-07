@@ -213,7 +213,14 @@ mod open {
         ($name:ident, $path:expr) => {
             #[bench]
             fn $name(b: &mut Bencher) {
-                b.iter(|| rpng::PNG::open(Path::new("tests\\test_images").join(&format!("{}", $path)).join(&format!("{}.png", stringify!($name)))).unwrap());
+                b.iter(|| {
+                    rpng::PNG::open(
+                        Path::new("tests\\test_images")
+                            .join(&format!("{}", $path))
+                            .join(&format!("{}.png", stringify!($name))),
+                    )
+                    .unwrap()
+                });
             }
         };
     }
@@ -227,7 +234,12 @@ mod pixels {
         ($name:ident, $path:expr) => {
             #[bench]
             fn $name(b: &mut Bencher) {
-                let png = rpng::PNG::open(Path::new("tests\\test_images").join(&format!("{}", $path)).join(&format!("{}.png", stringify!($name)))).unwrap();
+                let png = rpng::PNG::open(
+                    Path::new("tests\\test_images")
+                        .join(&format!("{}", $path))
+                        .join(&format!("{}.png", stringify!($name))),
+                )
+                .unwrap();
                 b.iter(|| png.pixels());
             }
         };

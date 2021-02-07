@@ -10,11 +10,11 @@ categories = ["multimedia::images", "multimedia::encoding"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-flate2 = { version = "1.0", features = ["zlib"], default-features = false }
-crc32fast = "1.2.0"
+flate2 = { version = "1.0.20", features = ["zlib"], default-features = false }
+crc32fast = "1.2.1"
 
 [dev-dependencies]
-serde_json = "1.0.40"
+serde_json = "1.0.62"
 
 [lib]
 path = "src/main.rs"

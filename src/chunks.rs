@@ -1,13 +1,13 @@
 use std::fmt;
+use std::io::{BufRead, Read};
 use std::ops::Index;
-use std::io::{Read, BufRead};
 
 use crc32fast::Hasher;
 
 use crate::common::{BitDepth, ColorType, CompressionType};
-use crate::filter::{FilterMethod};
-use crate::interlacing::{Interlacing};
 use crate::errors::{ChunkError, MetadataError, PNGDecodingError};
+use crate::filter::FilterMethod;
+use crate::interlacing::Interlacing;
 use crate::utils::u32_to_be_bytes;
 
 /// The IHDR chunk contains important metadata for reading the image
@@ -24,55 +24,94 @@ pub struct IHDR {
 
 impl IHDR {
     pub fn new(
-            width: u32,
-            height: u32,
-            bit_depth: BitDepth,
-            color_type: ColorType,
-            compression_type: CompressionType,
-            filter_method: FilterMethod,
-            interlace_method: Interlacing
-        ) -> Result<Self, MetadataError> {
-
+        width: u32,
+        height: u32,
+        bit_depth: BitDepth,
+        color_type: ColorType,
+        compression_type: CompressionType,
+        filter_method: FilterMethod,
+        interlace_method: Interlacing,
+    ) -> Result<Self, MetadataError> {
         if !(0 < width && width < 2u32.pow(31)) {
             // between 0 and 2**31
-            return Err(MetadataError::InvalidWidth{ width: width as usize });
+            return Err(MetadataError::InvalidWidth {
+                width: width as usize,
+            });
         }
 
         if !(0 < height && height < 2u32.pow(31)) {
             // between 0 and 2**31
-            return Err(MetadataError::InvalidHeight{ height: height as usize });
+            return Err(MetadataError::InvalidHeight {
+                height: height as usize,
+            });
         }
 
         match color_type {
             ColorType::Grayscale => {
-                if ![BitDepth::One, BitDepth::Two, BitDepth::Four, BitDepth::Eight, BitDepth::Sixteen].contains(&bit_depth) {
-                    return Err(MetadataError::InvalidBitDepthForColorType{ bit_depth, color_type });
+                if ![
+                    BitDepth::One,
+                    BitDepth::Two,
+                    BitDepth::Four,
+                    BitDepth::Eight,
+                    BitDepth::Sixteen,
+                ]
+                .contains(&bit_depth)
+                {
+                    return Err(MetadataError::InvalidBitDepthForColorType {
+                        bit_depth,
+                        color_type,
+                    });
                 }
-            },
+            }
             ColorType::RGB => {
                 if ![BitDepth::Eight, BitDepth::Sixteen].contains(&bit_depth) {
-                    return Err(MetadataError::InvalidBitDepthForColorType{ bit_depth, color_type });
+                    return Err(MetadataError::InvalidBitDepthForColorType {
+                        bit_depth,
+                        color_type,
+                    });
                 }
-            },
+            }
             ColorType::Indexed => {
-                if ![BitDepth::One, BitDepth::Two, BitDepth::Four, BitDepth::Eight].contains(&bit_depth) {
-                    return Err(MetadataError::InvalidBitDepthForColorType{ bit_depth, color_type });
+                if ![
+                    BitDepth::One,
+                    BitDepth::Two,
+                    BitDepth::Four,
+                    BitDepth::Eight,
+                ]
+                .contains(&bit_depth)
+                {
+                    return Err(MetadataError::InvalidBitDepthForColorType {
+                        bit_depth,
+                        color_type,
+                    });
                 }
-            },
+            }
             ColorType::GrayscaleAlpha => {
                 if ![BitDepth::Eight, BitDepth::Sixteen].contains(&bit_depth) {
-                    return Err(MetadataError::InvalidBitDepthForColorType{ bit_depth, color_type });
+                    return Err(MetadataError::InvalidBitDepthForColorType {
+                        bit_depth,
+                        color_type,
+                    });
                 }
-            },
+            }
             ColorType::RGBA => {
                 if ![BitDepth::Eight, BitDepth::Sixteen].contains(&bit_depth) {
-                    return Err(MetadataError::InvalidBitDepthForColorType{ bit_depth, color_type });
+                    return Err(MetadataError::InvalidBitDepthForColorType {
+                        bit_depth,
+                        color_type,
+                    });
                 }
-            },
+            }
         }
-    Ok(Self {
-        width, height, bit_depth, color_type, compression_type, filter_method, interlace_method
-    })
+        Ok(Self {
+            width,
+            height,
+            bit_depth,
+            color_type,
+            compression_type,
+            filter_method,
+            interlace_method,
+        })
     }
 }
 
@@ -83,16 +122,13 @@ impl<'a> Chunk<'a> for IHDR {
     const NAME: &'a str = "IHDR";
 
     fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PNGDecodingError> {
-        let (
-            mut width_buffer,
-            mut height_buffer,
-        ) = ([0u8; 4], [0u8; 4]);
+        let (mut width_buffer, mut height_buffer) = ([0u8; 4], [0u8; 4]);
         let (
             mut bit_depth_buffer,
             mut color_type_buffer,
             mut compression_type_buffer,
             mut filter_method_buffer,
-            mut interlace_method_buffer
+            mut interlace_method_buffer,
         ) = ([0u8; 1], [0u8; 1], [0u8; 1], [0u8; 1], [0u8; 1]);
 
         if length != 13 {
@@ -112,7 +148,8 @@ impl<'a> Chunk<'a> for IHDR {
         let color_type = ColorType::from_u8(u8::from_be_bytes(color_type_buffer))?;
 
         buf.read_exact(&mut compression_type_buffer)?;
-        let compression_type = CompressionType::from_u8(u8::from_be_bytes(compression_type_buffer))?;
+        let compression_type =
+            CompressionType::from_u8(u8::from_be_bytes(compression_type_buffer))?;
 
         buf.read_exact(&mut filter_method_buffer)?;
         let filter_method = FilterMethod::from_u8(u8::from_be_bytes(filter_method_buffer))?;
@@ -120,20 +157,28 @@ impl<'a> Chunk<'a> for IHDR {
         buf.read_exact(&mut interlace_method_buffer)?;
         let interlace_method = Interlacing::from_u8(u8::from_be_bytes(interlace_method_buffer))?;
 
-        Ok(IHDR::new(width, height, bit_depth, color_type, compression_type, filter_method, interlace_method)?)
+        Ok(IHDR::new(
+            width,
+            height,
+            bit_depth,
+            color_type,
+            compression_type,
+            filter_method,
+            interlace_method,
+        )?)
     }
 
-    fn as_bytes(self) -> Vec<u8> {
-        let mut buffer: Vec<u8> = Vec::with_capacity(4+13+4);
+    fn into_bytes(self) -> Vec<u8> {
+        let mut buffer: Vec<u8> = Vec::with_capacity(4 + 13 + 4);
 
         buffer.extend(b"IHDR");
         buffer.extend(&u32_to_be_bytes(self.width));
         buffer.extend(&u32_to_be_bytes(self.height));
-        buffer.push(self.bit_depth.as_u8());
-        buffer.push(self.color_type.as_u8());
-        buffer.push(self.compression_type.as_u8());
-        buffer.push(self.filter_method.as_u8());
-        buffer.push(self.interlace_method.as_u8());
+        buffer.push(self.bit_depth as u8);
+        buffer.push(self.color_type as u8);
+        buffer.push(self.compression_type as u8);
+        buffer.push(self.filter_method as u8);
+        buffer.push(self.interlace_method as u8);
 
         let mut hasher = Hasher::new();
         hasher.update(&buffer);
@@ -150,15 +195,17 @@ pub trait Chunk<'a> {
     const IS_RESERVED_FIELD: bool = false;
     const IS_SAFE_TO_COPY: bool;
     const NAME: &'a str;
-    fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PNGDecodingError> where Self: std::marker::Sized;
-    fn as_bytes(self) -> Vec<u8>;
+    fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PNGDecodingError>
+    where
+        Self: Sized;
+    fn into_bytes(self) -> Vec<u8>;
 }
 
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct UnrecognizedChunk {
     pub length: u32,
     pub chunk_type: String,
-    pub bytes: std::vec::Vec<u8>,
+    pub bytes: Vec<u8>,
     pub is_critical: bool,
     pub is_public: bool,
     pub is_safe_to_copy: bool,
@@ -166,7 +213,10 @@ pub struct UnrecognizedChunk {
 
 impl fmt::Debug for UnrecognizedChunk {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "UnrecognizedChunk {{\n    length: {}\n    chunk_type: \"{}\"\n}}", self.length, self.chunk_type)
+        f.debug_struct("UnrecognizedChunk")
+            .field("length", &self.length)
+            .field("chunk_type", &self.chunk_type)
+            .finish()
     }
 }
 
@@ -207,11 +257,10 @@ impl From<[u16; 3]> for PaletteEntry {
     }
 }
 
-
 impl PaletteEntry {
     /// Return the RGB value as a vector
     pub fn to_vec(self) -> Vec<u16> {
-        vec!(self.red, self.green, self.blue)
+        vec![self.red, self.green, self.blue]
     }
 
     /// Return the RGB value as an array [u8; 3]
@@ -224,7 +273,7 @@ impl PaletteEntry {
 /// Entries are 0 indexed
 #[derive(Default, Clone, Hash, PartialEq, Eq)]
 pub struct PLTE {
-    pub entries: Vec<PaletteEntry>
+    pub entries: Vec<PaletteEntry>,
 }
 
 impl fmt::Display for PLTE {
@@ -263,18 +312,18 @@ impl<'a> Chunk<'a> for PLTE {
 
     fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PNGDecodingError> {
         if length % 3 != 0 {
-            return Err(ChunkError::InvalidPLTELength.into())
+            return Err(ChunkError::InvalidPLTELength.into());
         }
-        let mut entries_buffer: Vec<u8> = vec!(0; length as usize);
+        let mut entries_buffer: Vec<u8> = vec![0; length as usize];
         buf.read_exact(&mut entries_buffer)?;
         let entries_: Vec<&[u8]> = entries_buffer.chunks_exact(3).collect();
-        let entries: Vec<PaletteEntry> =  entries_.iter().map(|x| PaletteEntry::from(*x)).collect();
+        let entries: Vec<PaletteEntry> = entries_.iter().map(|x| PaletteEntry::from(*x)).collect();
 
         Ok(PLTE { entries })
     }
 
-    fn as_bytes(self) -> Vec<u8> {
-        unimplemented!()
+    fn into_bytes(self) -> Vec<u8> {
+        todo!()
     }
 }
 
@@ -308,18 +357,19 @@ impl<'a> Chunk<'a> for pHYs {
         let unit = u8::from_be_bytes(unit_buffer);
 
         Ok(pHYs {
-            pixels_per_unit_x, pixels_per_unit_y,
-            unit: Unit::from_u8(unit)?
+            pixels_per_unit_x,
+            pixels_per_unit_y,
+            unit: Unit::from_u8(unit)?,
         })
     }
 
-    fn as_bytes(self) -> Vec<u8> {
-        let mut buffer: Vec<u8> = Vec::with_capacity(4+4+4+1+4);
+    fn into_bytes(self) -> Vec<u8> {
+        let mut buffer: Vec<u8> = Vec::with_capacity(4 + 4 + 4 + 1 + 4);
 
         buffer.extend(b"pHYs");
         buffer.extend(&u32_to_be_bytes(self.pixels_per_unit_x));
         buffer.extend(&u32_to_be_bytes(self.pixels_per_unit_y));
-        buffer.push(self.unit.as_u8());
+        buffer.push(self.unit as u8);
 
         let mut hasher = Hasher::new();
         hasher.update(&buffer);
@@ -347,14 +397,7 @@ impl Unit {
         match unit {
             0 => Ok(Self::Unknown),
             1 => Ok(Self::Meters),
-            _ => Err(MetadataError::UnrecognizedUnit{ unit }),
-        }
-    }
-
-    pub fn as_u8(&self) -> u8 {
-        match self {
-            Self::Unknown => 0,
-            Self::Meters => 1,
+            _ => Err(MetadataError::UnrecognizedUnit { unit }),
         }
     }
 }
@@ -377,10 +420,9 @@ impl<'a> Chunk<'a> for tEXt {
         let mut keyword_buffer: Vec<u8> = Vec::new();
         let keyword_len = buf.read_until(b'\0', &mut keyword_buffer)?;
 
-        let remaining_length = length
-                                - (keyword_len as u32);
+        let remaining_length = length - (keyword_len as u32);
 
-        let mut text_buffer: Vec<u8> = vec!(0; remaining_length as usize);
+        let mut text_buffer: Vec<u8> = vec![0; remaining_length as usize];
         buf.read_exact(&mut text_buffer)?;
 
         // the null byte is included in `read_until()`
@@ -393,12 +435,12 @@ impl<'a> Chunk<'a> for tEXt {
         Ok(tEXt { keyword, text })
     }
 
-    fn as_bytes(self) -> Vec<u8> {
-        let mut buffer: Vec<u8> = Vec::with_capacity(4+self.keyword.len()+self.text.len()+4);
+    fn into_bytes(self) -> Vec<u8> {
+        let mut buffer: Vec<u8> = Vec::with_capacity(4 + self.keyword.len() + self.text.len() + 4);
 
         buffer.extend(b"tEXt");
-        buffer.extend(self.keyword.as_bytes());
-        buffer.extend(self.text.as_bytes());
+        buffer.extend(self.keyword.into_bytes());
+        buffer.extend(self.text.into_bytes());
 
         let mut hasher = Hasher::new();
         hasher.update(&buffer);
@@ -423,7 +465,7 @@ pub struct iTXt {
 #[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub struct gAMA {
-    pub gamma: u32
+    pub gamma: u32,
 }
 
 impl<'a> Chunk<'a> for gAMA {
@@ -442,8 +484,8 @@ impl<'a> Chunk<'a> for gAMA {
         Ok(gAMA { gamma })
     }
 
-    fn as_bytes(self) -> Vec<u8> {
-        let mut buffer: Vec<u8> = Vec::with_capacity(4+4+4);
+    fn into_bytes(self) -> Vec<u8> {
+        let mut buffer: Vec<u8> = Vec::with_capacity(4 + 4 + 4);
 
         buffer.extend(b"gAMA");
         buffer.extend(&u32_to_be_bytes(self.gamma));
@@ -486,7 +528,7 @@ impl fmt::Debug for iCCP {
 
 #[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
 pub struct ICCProfile {
-    icc_profile: Vec<u8>
+    icc_profile: Vec<u8>,
 }
 
 /// Contains the number of significant bits.
@@ -494,11 +536,29 @@ pub struct ICCProfile {
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub enum sBIT {
-    Grayscale{grayscale: u8},
-    RGB{red: u8, green: u8, blue: u8},
-    Indexed{red: u8, green: u8, blue: u8},
-    GrayscaleAlpha{grayscale: u8, alpha: u8},
-    RGBA{red: u8, green: u8, blue: u8, alpha: u8},
+    Grayscale {
+        grayscale: u8,
+    },
+    RGB {
+        red: u8,
+        green: u8,
+        blue: u8,
+    },
+    Indexed {
+        red: u8,
+        green: u8,
+        blue: u8,
+    },
+    GrayscaleAlpha {
+        grayscale: u8,
+        alpha: u8,
+    },
+    RGBA {
+        red: u8,
+        green: u8,
+        blue: u8,
+        alpha: u8,
+    },
 }
 
 /// Contains information about the ICC specified rendering intent
@@ -509,13 +569,15 @@ pub enum sRGB {
     /// Perceptual intent is for images preferring good adaptation to the output
     /// device gamut at the expense of colorimetric accuracy, like photographs
     Perceptual = 0,
+
     /// Relative colorimetric intent is for images requiring color appearance
     /// matching (relative to the output device white point), like logos
     RelativeColorimetric = 1,
+
     /// Saturation intent is for images preferring preservation of saturation
     /// at the expense of hue and lightness, like charts and graphs
     Saturation = 2,
-    /// Absolute colorimetric intent is for images requiring preservation of
+
     /// absolute colorimetry, like proofs (previews of images destined for a
     /// different output device)
     AbsoluteColorimetric = 3,
@@ -537,18 +599,18 @@ impl sRGB {
 #[derive(Clone, Hash, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub enum tRNS {
-    Grayscale{ grayscale: u16 },
-    RGB{ red: u16, green: u16, blue: u16 },
-    Indexed{ entries: Vec<u8> },
+    Grayscale { grayscale: u16 },
+    RGB { red: u16, green: u16, blue: u16 },
+    Indexed { entries: Vec<u8> },
 }
 
 impl fmt::Debug for tRNS {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use tRNS::*;
         match self {
-            Grayscale{ .. } => write!(f, "{:?}", self),
-            RGB{ .. } => write!(f, "{:?}", self),
-            Indexed{ entries } => write!(f, "tRNS {{ {} entries }}", entries.len())
+            Grayscale { .. } => write!(f, "{:?}", self),
+            RGB { .. } => write!(f, "{:?}", self),
+            Indexed { entries } => write!(f, "tRNS {{ {} entries }}", entries.len()),
         }
     }
 }
@@ -558,23 +620,26 @@ impl fmt::Debug for tRNS {
 #[allow(non_camel_case_types)]
 pub enum bKGD {
     // TODO: rename field to gray
-    Grayscale{ grayscale: u16 },
-    RGB{ red: u16, green: u16, blue: u16 },
-    Palette{ palette_index: u8, rgb: PaletteEntry },
+    Grayscale {
+        grayscale: u16,
+    },
+    RGB {
+        red: u16,
+        green: u16,
+        blue: u16,
+    },
+    Palette {
+        palette_index: u8,
+        rgb: PaletteEntry,
+    },
 }
 
 impl bKGD {
     pub fn rgb(self) -> [u16; 3] {
         match self {
-            bKGD::Grayscale{ grayscale } => {
-                [grayscale, grayscale, grayscale]
-            },
-            bKGD::RGB{ red, green, blue } => {
-                [red, green, blue]
-            },
-            bKGD::Palette{ rgb, .. } => {
-                rgb.to_array()
-            }
+            bKGD::Grayscale { grayscale } => [grayscale, grayscale, grayscale],
+            bKGD::RGB { red, green, blue } => [red, green, blue],
+            bKGD::Palette { rgb, .. } => rgb.to_array(),
         }
     }
 }
@@ -614,20 +679,29 @@ impl AncillaryChunks {
 
 macro_rules! show_optional_chunk {
     ($self:ident, $chunk:ident) => {
-        if $self.$chunk.is_none() { String::from("") } else { format!("\n\t{:?}", $self.$chunk) }
+        if $self.$chunk.is_none() {
+            String::from("")
+        } else {
+            format!("\n\t{:?}", $self.$chunk)
+        }
     };
 }
 
 macro_rules! show_optional_chunk_mult {
     ($self:ident, $chunk:ident) => {
-        if $self.$chunk.is_empty() { String::from("") } else { format!("\n\t{:?}", $self.$chunk) }
+        if $self.$chunk.is_empty() {
+            String::from("")
+        } else {
+            format!("\n\t{:?}", $self.$chunk)
+        }
     };
 }
 
 impl fmt::Display for AncillaryChunks {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
-            f, "AncillaryChunks {{ {}{}{}{}{}{}{}{}{}\n    }}",
+            f,
+            "AncillaryChunks {{ {}{}{}{}{}{}{}{}{}\n    }}",
             show_optional_chunk!(self, pHYs),
             show_optional_chunk_mult!(self, itxt),
             show_optional_chunk!(self, gama),

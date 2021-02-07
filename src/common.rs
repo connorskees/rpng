@@ -23,39 +23,20 @@ pub enum BitDepth {
     Sixteen = 16,
 }
 
-impl std::convert::Into<u8> for BitDepth {
-    fn into(self) -> u8 {
-        match self {
-            Self::One => 1,
-            Self::Two => 2,
-            Self::Four => 4,
-            Self::Eight => 8,
-            Self::Sixteen => 16,
-        }
-    }
-}
-
 impl BitDepth {
-    /// Map BitDepth to its integer representation.
-    /// Returns Err(UnrecognizedBitDepth) on unknown depth
-    pub fn from_u8(bit_depth: u8) -> Result<BitDepth, MetadataError>  {
+    pub fn from_u8(bit_depth: u8) -> Result<BitDepth, MetadataError> {
         match bit_depth {
-            1 =>  Ok(Self::One),
-            2 =>  Ok(Self::Two),
-            4 =>  Ok(Self::Four),
-            8 =>  Ok(Self::Eight),
+            1 => Ok(Self::One),
+            2 => Ok(Self::Two),
+            4 => Ok(Self::Four),
+            8 => Ok(Self::Eight),
             16 => Ok(Self::Sixteen),
-            _ => Err(MetadataError::UnrecognizedBitDepth{ bit_depth })
+            _ => Err(MetadataError::UnrecognizedBitDepth { bit_depth }),
         }
-    }
-
-    /// Map BitDepth to its integer representation.
-    pub fn as_u8(self) -> u8 {
-        self.into()
     }
 }
 
-impl std::default::Default for BitDepth {
+impl Default for BitDepth {
     fn default() -> Self {
         Self::Eight
     }
@@ -74,26 +55,12 @@ impl CompressionType {
     pub fn from_u8(compression_type: u8) -> Result<CompressionType, MetadataError> {
         match compression_type {
             0 => Ok(CompressionType::Deflate),
-            _ => Err(MetadataError::UnrecognizedCompressionType{ compression_type })
-        }
-    }
-
-    pub fn as_u8(&self) -> u8 {
-        match self {
-            CompressionType::Deflate => 0,
+            _ => Err(MetadataError::UnrecognizedCompressionType { compression_type }),
         }
     }
 }
 
-impl std::convert::Into<u8> for CompressionType {
-    fn into(self) -> u8 {
-        match self {
-            CompressionType::Deflate => 0,
-        }
-    }
-}
-
-impl std::default::Default for CompressionType {
+impl Default for CompressionType {
     fn default() -> Self {
         Self::Deflate
     }
@@ -103,13 +70,13 @@ impl std::default::Default for CompressionType {
 #[repr(u8)]
 pub enum ColorType {
     Grayscale = 0,
-    RGB = 2, // Truecolor
+    RGB = 2,
     Indexed = 3,
     GrayscaleAlpha = 4,
-    RGBA = 6, // TruecolorAlpha
+    RGBA = 6,
 }
 
-impl std::default::Default for ColorType {
+impl Default for ColorType {
     fn default() -> Self {
         ColorType::RGBA
     }
@@ -125,17 +92,7 @@ impl ColorType {
             3 => Ok(ColorType::Indexed),
             4 => Ok(ColorType::GrayscaleAlpha),
             6 => Ok(ColorType::RGBA),
-            _ => Err(MetadataError::UnrecognizedColorType{ color_type })
-        }
-    }
-
-    pub fn as_u8(&self) -> u8 {
-        match self {
-            ColorType::Grayscale => 0,
-            ColorType::RGB => 2,
-            ColorType::Indexed => 3,
-            ColorType::GrayscaleAlpha => 4,
-            ColorType::RGBA => 6,
+            _ => Err(MetadataError::UnrecognizedColorType { color_type }),
         }
     }
 
@@ -162,8 +119,9 @@ pub struct Bitmap<T> {
 impl<T> Bitmap<T> {
     pub fn new(rows: Vec<Vec<Vec<T>>>) -> Result<Bitmap<T>, MetadataError> {
         if rows.is_empty() || rows.len() > 2usize.pow(31) {
-            return Err(MetadataError::InvalidHeight{ height: rows.len() });
+            return Err(MetadataError::InvalidHeight { height: rows.len() });
         }
+
         Ok(Bitmap {
             width: rows[0].len(),
             height: rows.len(),
@@ -213,31 +171,4 @@ pub const fn get_bit_at(num: u8, n: u8) -> bool {
 pub struct DPI {
     pub dpi_x: u32,
     pub dpi_y: u32,
-}
-
-#[allow(dead_code, unused_imports)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn test_bit_depth_conversions() {
-        assert_eq!(BitDepth::One, BitDepth::from_u8(1).unwrap());
-        assert_eq!(BitDepth::Two, BitDepth::from_u8(2).unwrap());
-        assert_eq!(BitDepth::Four, BitDepth::from_u8(4).unwrap());
-        assert_eq!(BitDepth::Eight, BitDepth::from_u8(8).unwrap());
-        assert_eq!(BitDepth::Sixteen, BitDepth::from_u8(16).unwrap());
-        assert!(BitDepth::from_u8(17).is_err());
-
-        assert_eq!(BitDepth::One.as_u8(), 1);
-        assert_eq!(BitDepth::Two.as_u8(), 2);
-        assert_eq!(BitDepth::Four.as_u8(), 4);
-        assert_eq!(BitDepth::Eight.as_u8(), 8);
-        assert_eq!(BitDepth::Sixteen.as_u8(), 16);
-    }
-
-    fn test_get_bit_at() {
-        assert_eq!(true, get_bit_at(0b001, 0));
-        assert_eq!(false, get_bit_at(0b001, 0));
-        assert_eq!(false, get_bit_at(0b001, 0));
-    }
 }

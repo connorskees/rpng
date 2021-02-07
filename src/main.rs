@@ -1,5 +1,5 @@
 //! # Library for working with PNG files
-//! 
+//!
 //! ## Currently supports
 //! |                  | Decoding                                             | Encoding |
 //! |------------------|------------------------------------------------------|----------|
@@ -19,19 +19,18 @@ use std::io::Write;
 #[cfg(test)]
 use serde_json;
 
-
 pub use crate::common::*;
 pub use crate::decoder::PNGDecoder;
 use crate::errors::*;
 pub use crate::filter::*;
-pub use crate::interlacing::{Interlacing};
+pub use crate::interlacing::Interlacing;
 pub use png::PNG;
 
+pub mod chunks;
 mod common;
 mod decoder;
 mod encoder;
 pub mod errors;
-pub mod chunks;
 mod filter;
 mod interlacing;
 mod png;
@@ -39,25 +38,10 @@ mod utils;
 
 #[allow(dead_code)]
 fn main() -> Result<(), PNGDecodingError> {
-    println!("{:?}", png);
+    let png = PNG::open(std::env::args().nth(1).unwrap())?;
+    dbg!(&png);
+    let _pixels = png.pixels()?;
+    // let mut f = File::create("fogkfkg.json")?;
+    // f.write_all(serde_json::to_string(&_pixels.rows).unwrap().as_bytes())?;
     Ok(())
-}
-
-#[cfg(test)]
-#[allow(dead_code)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn test() -> Result<(), PNGDecodingError> {
-        let png = PNG::from_path(r"C:\Users\Connor\Downloads\SF.LogoChop-transparent.png")?;
-        println!("{:?}", png);
-        let _pixels = png.pixels()?;
-        let mut f = File::create("fogkfkg.json")?;
-        f.write_all(serde_json::to_string(&_pixels.rows).unwrap().as_bytes())?;
-        Ok(())
-    }
-}
-
-
 }
