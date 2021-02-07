@@ -8,7 +8,7 @@ use crc32fast::Hasher;
 
 use crate::{
     common::{BitDepth, ColorType, CompressionType},
-    errors::{ChunkError, MetadataError, PNGDecodingError},
+    errors::{ChunkError, MetadataError, PngDecodingError},
     filter::FilterMethod,
     interlacing::Interlacing,
 };
@@ -124,7 +124,7 @@ impl<'a> Chunk<'a> for IHDR {
     const IS_SAFE_TO_COPY: bool = false;
     const NAME: &'a str = "IHDR";
 
-    fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PNGDecodingError> {
+    fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PngDecodingError> {
         let (mut width_buffer, mut height_buffer) = ([0u8; 4], [0u8; 4]);
         let (
             mut bit_depth_buffer,
@@ -135,7 +135,7 @@ impl<'a> Chunk<'a> for IHDR {
         ) = ([0u8; 1], [0u8; 1], [0u8; 1], [0u8; 1], [0u8; 1]);
 
         if length != 13 {
-            return Err(PNGDecodingError::InvalidIHDRLength(length));
+            return Err(PngDecodingError::InvalidIHDRLength(length));
         }
 
         buf.read_exact(&mut width_buffer)?;
@@ -198,7 +198,7 @@ pub trait Chunk<'a> {
     const IS_RESERVED_FIELD: bool = false;
     const IS_SAFE_TO_COPY: bool;
     const NAME: &'a str;
-    fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PNGDecodingError>
+    fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PngDecodingError>
     where
         Self: Sized;
     fn into_bytes(self) -> Vec<u8>;
@@ -313,7 +313,7 @@ impl<'a> Chunk<'a> for PLTE {
     const IS_SAFE_TO_COPY: bool = true;
     const NAME: &'a str = "PLTE";
 
-    fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PNGDecodingError> {
+    fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PngDecodingError> {
         if length % 3 != 0 {
             return Err(ChunkError::InvalidPLTELength.into());
         }
@@ -345,7 +345,7 @@ impl<'a> Chunk<'a> for pHYs {
     const IS_SAFE_TO_COPY: bool = true;
     const NAME: &'a str = "pHYs";
 
-    fn parse<T: Read + BufRead>(_length: u32, buf: &mut T) -> Result<Self, PNGDecodingError> {
+    fn parse<T: Read + BufRead>(_length: u32, buf: &mut T) -> Result<Self, PngDecodingError> {
         let mut pixels_per_x_buffer = [0u8; 4];
         let mut pixels_per_y_buffer = [0u8; 4];
         let mut unit_buffer = [0u8];
@@ -419,7 +419,7 @@ impl<'a> Chunk<'a> for tEXt {
     const IS_SAFE_TO_COPY: bool = true;
     const NAME: &'a str = "tEXt";
 
-    fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PNGDecodingError> {
+    fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PngDecodingError> {
         let mut keyword_buffer: Vec<u8> = Vec::new();
         let keyword_len = buf.read_until(b'\0', &mut keyword_buffer)?;
 
@@ -477,7 +477,7 @@ impl<'a> Chunk<'a> for gAMA {
     const IS_SAFE_TO_COPY: bool = true;
     const NAME: &'a str = "gAMA";
 
-    fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PNGDecodingError> {
+    fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PngDecodingError> {
         if length != 4 {
             return Err(ChunkError::InvalidgAMALength.into());
         }

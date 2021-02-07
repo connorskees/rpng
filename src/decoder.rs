@@ -4,15 +4,15 @@ use crate::{
         UnrecognizedChunk, IHDR, PLTE,
     },
     common::{get_bit_at, ColorType, CompressionType, HEADER, IEND},
-    errors::{ChunkError, PNGDecodingError},
-    PNG,
+    errors::{ChunkError, PngDecodingError},
+    Png,
 };
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
-pub struct PNGDecoder;
+pub struct PngDecoder;
 
-impl PNGDecoder {
-    pub fn read<T: std::io::BufRead + std::io::Read>(mut f: T) -> Result<PNG, PNGDecodingError> {
+impl PngDecoder {
+    pub fn read<T: std::io::BufRead + std::io::Read>(mut f: T) -> Result<Png, PngDecodingError> {
         let mut header = [0u8; 8];
         let mut ihdr: IHDR = Default::default();
         let mut unrecognized_chunks: Vec<UnrecognizedChunk> = Vec::new();
@@ -22,7 +22,7 @@ impl PNGDecoder {
 
         f.read_exact(&mut header)?;
         if header != HEADER {
-            return Err(PNGDecodingError::InvalidHeader {
+            return Err(PngDecodingError::InvalidHeader {
                 found: header,
                 expected: HEADER,
             });
@@ -90,7 +90,7 @@ impl PNGDecoder {
                     let mut iend_crc = [0u8; 4];
                     f.read_exact(&mut iend_crc)?;
                     if length != 0 || iend_crc != [174u8, 66, 96, 130] {
-                        return Err(PNGDecodingError::InvalidIENDChunk {
+                        return Err(PngDecodingError::InvalidIENDChunk {
                             found: (length, iend_crc),
                             expected: IEND,
                         });
@@ -403,7 +403,7 @@ impl PNGDecoder {
         //     Interlacing::Adam7 => Interlacing::adam7(idat)
         // };
 
-        Ok(PNG {
+        Ok(Png {
             ihdr,
             idat,
             unrecognized_chunks,

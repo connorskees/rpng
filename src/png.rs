@@ -9,8 +9,8 @@ use std::{
 use flate2::bufread::ZlibDecoder;
 
 use crate::{
-    decoder::PNGDecoder,
-    errors::{ChunkError, PNGDecodingError},
+    decoder::PngDecoder,
+    errors::{ChunkError, PngDecodingError},
     filter::{self, FilterType},
     {
         chunks::{pHYs, AncillaryChunks, ICCProfile, Unit, UnrecognizedChunk, IHDR, PLTE},
@@ -23,7 +23,7 @@ use crate::{
 };
 
 #[derive(Default, Clone, Hash, PartialEq, Eq)]
-pub struct PNG {
+pub struct Png {
     pub ihdr: IHDR,
     pub plte: Option<PLTE>,
     pub idat: Vec<u8>,
@@ -31,9 +31,9 @@ pub struct PNG {
     pub ancillary_chunks: AncillaryChunks,
 }
 
-impl fmt::Debug for PNG {
+impl fmt::Debug for Png {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("PNG")
+        f.debug_struct("Png")
             .field("ihdr", &self.ihdr)
             .field("plte", &self.plte)
             .field("data", &format!("{} bytes (compressed)", self.idat.len()))
@@ -43,18 +43,18 @@ impl fmt::Debug for PNG {
     }
 }
 
-impl PNG {
-    pub fn open(file_path: impl AsRef<Path>) -> Result<Self, PNGDecodingError> {
+impl Png {
+    pub fn open(file_path: impl AsRef<Path>) -> Result<Self, PngDecodingError> {
         let file_size: usize = fs::metadata(&file_path)?.len() as usize;
-        PNGDecoder::read(BufReader::with_capacity(file_size, File::open(file_path)?))
+        PngDecoder::read(BufReader::with_capacity(file_size, File::open(file_path)?))
     }
 
-    pub fn pixels(&self) -> Result<Bitmap, PNGDecodingError> {
+    pub fn pixels(&self) -> Result<Bitmap, PngDecodingError> {
         let mut buffer: Vec<u8> = Vec::new();
         let mut zlib = ZlibDecoder::new(&self.idat as &[u8]);
         let buf_len = zlib.read_to_end(&mut buffer)?;
         if buf_len == 0 {
-            return Err(PNGDecodingError::ZeroLengthIDAT);
+            return Err(PngDecodingError::ZeroLengthIDAT);
         }
 
         let mut rows: Vec<Vec<Vec<u8>>> = Vec::new();
@@ -174,7 +174,7 @@ impl PNG {
         }
     }
 
-    pub fn iccp_profile(&self) -> Result<ICCProfile, PNGDecodingError> {
+    pub fn iccp_profile(&self) -> Result<ICCProfile, PngDecodingError> {
         let iccp = match self.ancillary_chunks.iCCP.as_ref() {
             Some(x) => x,
             None => return Err(ChunkError::PLTEChunkNotFound.into()),

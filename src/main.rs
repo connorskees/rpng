@@ -16,11 +16,11 @@ use std::fs::File;
 use std::io::Write;
 
 pub use crate::common::*;
-pub use crate::decoder::PNGDecoder;
+pub use crate::decoder::PngDecoder;
 use crate::errors::*;
 pub use crate::filter::*;
 pub use crate::interlacing::Interlacing;
-pub use png::PNG;
+pub use png::Png;
 
 pub mod chunks;
 mod common;
@@ -32,8 +32,8 @@ mod interlacing;
 mod png;
 
 #[allow(dead_code)]
-fn main() -> Result<(), PNGDecodingError> {
-    let png = PNG::open(std::env::args().nth(1).unwrap())?;
+fn main() -> Result<(), PngDecodingError> {
+    let png = Png::open(std::env::args().nth(1).unwrap())?;
     dbg!(&png);
     let pixels = png.pixels()?;
     // dbg!(&pixels);

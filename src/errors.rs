@@ -4,7 +4,7 @@ use crate::common::{BitDepth, ColorType};
 
 /// Container for errors that can occur when decoding a PNG
 #[derive(Debug)]
-pub enum PNGDecodingError {
+pub enum PngDecodingError {
     /// The 8 byte PNG header was found to be incorrect, which indicates either an error in transmission
     ///  or that the user is attempting to parse something other than a PNG file
     InvalidHeader {
@@ -171,9 +171,9 @@ impl fmt::Display for FilterError {
     }
 }
 
-impl fmt::Display for PNGDecodingError {
+impl fmt::Display for PngDecodingError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use PNGDecodingError::*;
+        use PngDecodingError::*;
         match self {
             InvalidHeader { found, expected } => {
                 write!(f, "expected bytes {:?}, but found {:?}", expected, found)
@@ -211,16 +211,16 @@ impl fmt::Display for PNGDecodingError {
 
 macro_rules! convert_to_decoding_error {
     ($val:ident) => {
-        impl std::convert::From<$val> for PNGDecodingError {
+        impl std::convert::From<$val> for PngDecodingError {
             fn from(error: $val) -> Self {
-                PNGDecodingError::$val(error)
+                PngDecodingError::$val(error)
             }
         }
     };
     ($name:ident, $original:ty) => {
-        impl std::convert::From<$original> for PNGDecodingError {
+        impl std::convert::From<$original> for PngDecodingError {
             fn from(error: $original) -> Self {
-                PNGDecodingError::$name(error)
+                PngDecodingError::$name(error)
             }
         }
     };
@@ -234,4 +234,4 @@ convert_to_decoding_error!(Utf8Error, std::str::Utf8Error);
 convert_to_decoding_error!(StringDecodeError, std::string::FromUtf8Error);
 
 #[derive(Debug)]
-pub enum PNGEncodingError {}
+pub enum PngEncodingError {}

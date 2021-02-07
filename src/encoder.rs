@@ -6,16 +6,16 @@ use std::path::Path;
 
 use crate::chunks::Chunk;
 use crate::common::{HEADER, IEND};
-use crate::errors::PNGDecodingError;
-use crate::png::PNG;
+use crate::errors::PngDecodingError;
+use crate::png::Png;
 
-pub fn save<S: AsRef<Path>>(png: PNG, file_path: S) -> Result<(), PNGDecodingError> {
+pub fn save<S: AsRef<Path>>(png: Png, file_path: S) -> Result<(), PngDecodingError> {
     let buffer = &mut BufWriter::new(File::create(file_path)?);
     write(png, buffer);
     Ok(())
 }
 
-pub fn write<T: Write>(png: PNG, buffer: &mut BufWriter<T>) -> Result<(), PNGDecodingError> {
+pub fn write<T: Write>(png: Png, buffer: &mut BufWriter<T>) -> Result<(), PngDecodingError> {
     buffer.write_all(&HEADER)?;
     buffer.write_all(&[0u8, 0, 0, 13])?;
     buffer.write_all(&png.ihdr.into_bytes())?;
