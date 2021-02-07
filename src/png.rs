@@ -1,17 +1,23 @@
-use std::fs::File;
 use std::io::prelude::*;
 use std::io::BufReader;
 use std::path::Path;
 use std::{convert::AsRef, vec};
 use std::{fmt, fs};
+use std::{fs::File, todo};
 
 use flate2::bufread::ZlibDecoder;
 
-use crate::chunks::{pHYs, AncillaryChunks, ICCProfile, Unit, UnrecognizedChunk, IHDR, PLTE};
-use crate::common::{get_bit_at, BitDepth, Bitmap, ColorType, DPI};
 use crate::decoder::PNGDecoder;
 use crate::errors::{ChunkError, PNGDecodingError};
 use crate::filter::{self, FilterType};
+use crate::{
+    chunks::{pHYs, AncillaryChunks, ICCProfile, Unit, UnrecognizedChunk, IHDR, PLTE},
+    Channel, Pixel,
+};
+use crate::{
+    common::{BitDepth, Bitmap, ColorType, DPI},
+    Dimensions,
+};
 
 #[derive(Default, Clone, Hash, PartialEq, Eq)]
 pub struct PNG {
@@ -40,7 +46,7 @@ impl PNG {
         PNGDecoder::read(BufReader::with_capacity(file_size, File::open(file_path)?))
     }
 
-    pub fn pixels(&self) -> Result<Bitmap<u16>, PNGDecodingError> {
+    pub fn pixels(&self) -> Result<Bitmap, PNGDecodingError> {
         let mut buffer: Vec<u8> = Vec::new();
         let mut zlib = ZlibDecoder::new(&self.idat as &[u8]);
         let buf_len = zlib.read_to_end(&mut buffer)?;
@@ -89,83 +95,73 @@ impl PNG {
             });
         }
 
-        // convert Vec<Vec<Vec<u8>>> to Vec<Vec<Vec<u16>>>
-        let row16: Vec<Vec<Vec<u16>>>;
+        fn get_pixel(bytes: &mut [u8], color_type: ColorType, bit_depth: BitDepth) -> Pixel {
+            assert_eq!(
+                bytes.len() * 8,
+                color_type.channels() as usize * bit_depth as usize
+            );
 
-        match self.ihdr.bit_depth {
-            BitDepth::One => {
-                row16 = rows
-                    .iter()
-                    .map(|row| {
-                        row.iter()
-                            .map(|pixel| {
-                                pixel
-                                    .iter()
-                                    .map(|channel| {
-                                        (0..=7)
-                                            .map(move |a| vec![u16::from(get_bit_at(*channel, a))])
-                                            .collect::<Vec<Vec<u16>>>()
-                                    })
-                                    .flatten()
-                                    .collect::<Vec<Vec<u16>>>()
-                            })
-                            .flatten()
-                            .collect()
-                    })
-                    .collect();
+            let byte_offset = &mut 0;
+            fn get_next_channel(
+                bytes: &mut [u8],
+                bit_depth: BitDepth,
+                byte_offset: &mut usize,
+            ) -> Channel {
+                match bit_depth {
+                    BitDepth::Eight => {
+                        let channel = Channel::Eight(bytes[*byte_offset]);
+                        *byte_offset += 1;
+                        channel
+                    }
+                    _ => todo!(),
+                }
             }
-            BitDepth::Two => todo!(),
-            BitDepth::Four => todo!(),
-            BitDepth::Eight => {
-                // TODO: Find a better solution than 3 nested `map`s
-                row16 = rows
-                    .iter()
-                    .map(|row| {
-                        vec![row
-                            .iter()
-                            .map(|pixel| {
-                                pixel
-                                    .iter()
-                                    .map(|channel| u16::from(*channel))
-                                    .collect::<Vec<u16>>()
-                            })
-                            .collect()]
-                    })
-                    .flatten()
-                    .collect();
+
+            match color_type {
+                ColorType::Grayscale => {
+                    Pixel::Grayscale(get_next_channel(bytes, bit_depth, byte_offset))
+                }
+                ColorType::GrayscaleAlpha => Pixel::GrayscaleAlpha(
+                    get_next_channel(bytes, bit_depth, byte_offset),
+                    get_next_channel(bytes, bit_depth, byte_offset),
+                ),
+                ColorType::Indexed => {
+                    Pixel::Indexed(get_next_channel(bytes, bit_depth, byte_offset))
+                }
+                ColorType::RGB => Pixel::Rgb {
+                    red: get_next_channel(bytes, bit_depth, byte_offset),
+                    green: get_next_channel(bytes, bit_depth, byte_offset),
+                    blue: get_next_channel(bytes, bit_depth, byte_offset),
+                },
+                ColorType::RGBA => Pixel::Rgba {
+                    red: get_next_channel(bytes, bit_depth, byte_offset),
+                    green: get_next_channel(bytes, bit_depth, byte_offset),
+                    blue: get_next_channel(bytes, bit_depth, byte_offset),
+                    alpha: get_next_channel(bytes, bit_depth, byte_offset),
+                },
             }
-            BitDepth::Sixteen => row16 = combine_u8s_to_u16(rows),
         }
 
-        if self.ihdr.color_type == ColorType::Indexed {
-            let palette = match &self.plte {
-                Some(plte) => plte,
-                // a PNG cannot have an indexed color type without the plte chunk
-                _ => unreachable!(),
-            };
-            return Ok(Bitmap::<u16>::new(
-                row16
-                    .iter()
-                    .map(|row| {
-                        row.iter()
-                            .map(|pixel| {
-                                pixel
-                                    .chunks(1)
-                                    .map(|channel| palette[channel[0]].to_vec())
-                                    .collect::<Vec<Vec<u16>>>()
-                            })
-                            .flatten()
-                            .collect()
+        // convert Vec<Vec<Vec<u8>>> to Vec<Vec<Pixel>>
+        let rows: Vec<Vec<Pixel>> = rows
+            .into_iter()
+            .map(|row| {
+                row.into_iter()
+                    .map(|mut pixel| {
+                        get_pixel(&mut pixel, self.ihdr.color_type, self.ihdr.bit_depth)
                     })
-                    .collect(),
-            )?);
-        }
+                    .collect()
+            })
+            .collect();
 
-        Ok(Bitmap::new(row16)?)
+        Ok(Bitmap::new(rows)?)
     }
 
-    pub const fn dimensions(&self) -> [u32; 2] {
-        [self.ihdr.width, self.ihdr.height]
+    pub const fn dimensions(&self) -> Dimensions {
+        Dimensions {
+            width: self.ihdr.width as usize,
+            height: self.ihdr.height as usize,
+        }
     }
 
     pub fn palette(&self) -> Result<&PLTE, ChunkError> {

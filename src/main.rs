@@ -11,13 +11,9 @@
 
 #![deny(unsafe_code, missing_debug_implementations)]
 
-#[cfg(test)]
-use std::fs::File;
-#[cfg(test)]
-use std::io::Write;
-
-#[cfg(test)]
 use serde_json;
+use std::fs::File;
+use std::io::Write;
 
 pub use crate::common::*;
 pub use crate::decoder::PNGDecoder;
@@ -40,8 +36,10 @@ mod utils;
 fn main() -> Result<(), PNGDecodingError> {
     let png = PNG::open(std::env::args().nth(1).unwrap())?;
     dbg!(&png);
-    let _pixels = png.pixels()?;
-    // let mut f = File::create("fogkfkg.json")?;
-    // f.write_all(serde_json::to_string(&_pixels.rows).unwrap().as_bytes())?;
+    let pixels = png.pixels()?;
+    // dbg!(&pixels);
+
+    let mut f = File::create("fogkfkg.json")?;
+    f.write_all(serde_json::to_string(&pixels.rows).unwrap().as_bytes())?;
     Ok(())
 }

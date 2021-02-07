@@ -1,5 +1,7 @@
 use std::ops::Index;
 
+use serde::ser::{Serialize, SerializeSeq, Serializer};
+
 use crate::errors::MetadataError;
 
 /// The PNG header. In ascii, it can be represented as \x{89}PNG\r\n\x{1a}\n
@@ -13,12 +15,16 @@ pub const IEND: [u8; 12] = [0u8, 0, 0, 0, 73, 69, 78, 68, 174, 66, 96, 130];
 pub enum BitDepth {
     /// Colors are represented by a single bit. Black or white
     One = 1,
+
     /// Color channels can be 0-3
     Two = 2,
+
     /// Color channels can be 0-15
     Four = 4,
+
     /// Color channels can be 0-255
     Eight = 8,
+
     /// Color channels can be 0-65_535
     Sixteen = 16,
 }
@@ -109,41 +115,138 @@ impl ColorType {
     }
 }
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
-pub struct Bitmap<T> {
-    pub rows: Vec<Vec<Vec<T>>>,
-    width: usize,
-    height: usize,
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub enum Channel {
+    One(bool),
+    Two(u8),
+    Four(u8),
+    Eight(u8),
+    Sixteen(u16),
 }
 
-impl<T> Bitmap<T> {
-    pub fn new(rows: Vec<Vec<Vec<T>>>) -> Result<Bitmap<T>, MetadataError> {
-        if rows.is_empty() || rows.len() > 2usize.pow(31) {
+impl serde::Serialize for Channel {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match self {
+            &Self::One(a) => serializer.serialize_u8(a as u8),
+            &Self::Two(a) => serializer.serialize_u8(a as u8),
+            &Self::Four(a) => serializer.serialize_u8(a as u8),
+            &Self::Eight(a) => serializer.serialize_u8(a as u8),
+            &Self::Sixteen(a) => serializer.serialize_u16(a),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub enum Pixel {
+    Grayscale(Channel),
+    GrayscaleAlpha(Channel, Channel),
+    Indexed(Channel),
+    Rgb {
+        red: Channel,
+        green: Channel,
+        blue: Channel,
+    },
+    Rgba {
+        red: Channel,
+        green: Channel,
+        blue: Channel,
+        alpha: Channel,
+    },
+}
+
+impl Pixel {
+    pub fn channels(&self) -> usize {
+        match self {
+            Self::Grayscale(..) => 1,
+            Self::Rgb { .. } => 3,
+            Self::Indexed(..) => 1,
+            Self::GrayscaleAlpha(..) => 2,
+            Self::Rgba { .. } => 4,
+        }
+    }
+}
+
+impl Serialize for Pixel {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut seq = serializer.serialize_seq(Some(self.channels()))?;
+
+        match self {
+            Self::Grayscale(grayscale) => seq.serialize_element(grayscale)?,
+            Self::Rgb { red, green, blue } => {
+                seq.serialize_element(red)?;
+                seq.serialize_element(green)?;
+                seq.serialize_element(blue)?;
+            }
+            Self::Indexed(idx) => seq.serialize_element(idx)?,
+            Self::GrayscaleAlpha(grayscale, alpha) => {
+                seq.serialize_element(grayscale)?;
+                seq.serialize_element(alpha)?;
+            }
+            Self::Rgba {
+                red,
+                green,
+                blue,
+                alpha,
+            } => {
+                seq.serialize_element(red)?;
+                seq.serialize_element(green)?;
+                seq.serialize_element(blue)?;
+                seq.serialize_element(alpha)?;
+            }
+        }
+
+        seq.end()
+    }
+}
+
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+pub struct Dimensions {
+    pub width: usize,
+    pub height: usize,
+}
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub struct Bitmap {
+    pub rows: Vec<Vec<Pixel>>,
+    dimensions: Dimensions,
+}
+
+impl Bitmap {
+    pub fn new(rows: Vec<Vec<Pixel>>) -> Result<Bitmap, MetadataError> {
+        if rows.is_empty() || rows.len() > 2_usize.pow(31) {
             return Err(MetadataError::InvalidHeight { height: rows.len() });
         }
 
         Ok(Bitmap {
-            width: rows[0].len(),
-            height: rows.len(),
+            dimensions: Dimensions {
+                width: rows[0].len(),
+                height: rows.len(),
+            },
             rows,
         })
     }
 
     pub const fn width(&self) -> usize {
-        self.width
+        self.dimensions.width
     }
 
     pub const fn height(&self) -> usize {
-        self.height
+        self.dimensions.height
     }
 
-    pub fn set_pixel(&mut self, x: usize, y: usize, pixel: Vec<T>) {
+    pub fn set_pixel(&mut self, x: usize, y: usize, pixel: Pixel) {
         self.rows[y][x] = pixel;
     }
 }
 
-impl<T> Index<[usize; 2]> for Bitmap<T> {
-    type Output = Vec<T>;
+impl Index<[usize; 2]> for Bitmap {
+    type Output = Pixel;
 
     fn index(&self, index: [usize; 2]) -> &Self::Output {
         &self.rows[index[1]][index[0]]

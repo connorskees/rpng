@@ -73,6 +73,7 @@ pub fn sub(this_row: &[u8], chunk_size: u8, reverse: bool) -> Vec<Vec<u8>> {
         .chunks(chunk_size as usize)
         .map(Vec::from)
         .collect();
+
     for pixel_idx in 1..chunks.len() {
         // start at 1 because first pixel is unchanged
         for rgba_idx in 0..chunks[pixel_idx].len() {
@@ -84,6 +85,7 @@ pub fn sub(this_row: &[u8], chunk_size: u8, reverse: bool) -> Vec<Vec<u8>> {
             }
         }
     }
+
     chunks
 }
 
