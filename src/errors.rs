@@ -1,5 +1,6 @@
-use crate::common::{BitDepth, ColorType};
 use std::{fmt, io};
+
+use crate::common::{BitDepth, ColorType};
 
 /// Container for errors that can occur when decoding a PNG
 #[derive(Debug)]

@@ -1,14 +1,17 @@
-use std::fmt;
-use std::io::{BufRead, Read};
-use std::ops::Index;
+use std::{
+    fmt,
+    io::{BufRead, Read},
+    ops::Index,
+};
 
 use crc32fast::Hasher;
 
-use crate::common::{BitDepth, ColorType, CompressionType};
-use crate::errors::{ChunkError, MetadataError, PNGDecodingError};
-use crate::filter::FilterMethod;
-use crate::interlacing::Interlacing;
-use crate::utils::u32_to_be_bytes;
+use crate::{
+    common::{BitDepth, ColorType, CompressionType},
+    errors::{ChunkError, MetadataError, PNGDecodingError},
+    filter::FilterMethod,
+    interlacing::Interlacing,
+};
 
 /// The IHDR chunk contains important metadata for reading the image
 #[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
@@ -172,8 +175,8 @@ impl<'a> Chunk<'a> for IHDR {
         let mut buffer: Vec<u8> = Vec::with_capacity(4 + 13 + 4);
 
         buffer.extend(b"IHDR");
-        buffer.extend(&u32_to_be_bytes(self.width));
-        buffer.extend(&u32_to_be_bytes(self.height));
+        buffer.extend(&self.width.to_be_bytes());
+        buffer.extend(&self.height.to_be_bytes());
         buffer.push(self.bit_depth as u8);
         buffer.push(self.color_type as u8);
         buffer.push(self.compression_type as u8);
@@ -182,7 +185,7 @@ impl<'a> Chunk<'a> for IHDR {
 
         let mut hasher = Hasher::new();
         hasher.update(&buffer);
-        buffer.extend(&u32_to_be_bytes(hasher.finalize()));
+        buffer.extend(&hasher.finalize().to_be_bytes());
         assert_eq!(buffer.len(), 21);
 
         buffer
@@ -367,13 +370,13 @@ impl<'a> Chunk<'a> for pHYs {
         let mut buffer: Vec<u8> = Vec::with_capacity(4 + 4 + 4 + 1 + 4);
 
         buffer.extend(b"pHYs");
-        buffer.extend(&u32_to_be_bytes(self.pixels_per_unit_x));
-        buffer.extend(&u32_to_be_bytes(self.pixels_per_unit_y));
+        buffer.extend(&self.pixels_per_unit_x.to_be_bytes());
+        buffer.extend(&self.pixels_per_unit_y.to_be_bytes());
         buffer.push(self.unit as u8);
 
         let mut hasher = Hasher::new();
         hasher.update(&buffer);
-        buffer.extend(&u32_to_be_bytes(hasher.finalize()));
+        buffer.extend(&hasher.finalize().to_be_bytes());
 
         buffer
     }
@@ -444,7 +447,7 @@ impl<'a> Chunk<'a> for tEXt {
 
         let mut hasher = Hasher::new();
         hasher.update(&buffer);
-        buffer.extend(&u32_to_be_bytes(hasher.finalize()));
+        buffer.extend(&hasher.finalize().to_be_bytes());
 
         buffer
     }
@@ -488,11 +491,11 @@ impl<'a> Chunk<'a> for gAMA {
         let mut buffer: Vec<u8> = Vec::with_capacity(4 + 4 + 4);
 
         buffer.extend(b"gAMA");
-        buffer.extend(&u32_to_be_bytes(self.gamma));
+        buffer.extend(&self.gamma.to_be_bytes());
 
         let mut hasher = Hasher::new();
         hasher.update(&buffer);
-        buffer.extend(&u32_to_be_bytes(hasher.finalize()));
+        buffer.extend(&hasher.finalize().to_be_bytes());
 
         buffer
     }

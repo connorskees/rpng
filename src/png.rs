@@ -1,22 +1,25 @@
-use std::io::prelude::*;
-use std::io::BufReader;
-use std::path::Path;
-use std::{convert::AsRef, vec};
-use std::{fmt, fs};
-use std::{fs::File, todo};
+use std::{
+    convert::AsRef,
+    fmt,
+    fs::{self, File},
+    io::{BufReader, Read},
+    path::Path,
+};
 
 use flate2::bufread::ZlibDecoder;
 
-use crate::decoder::PNGDecoder;
-use crate::errors::{ChunkError, PNGDecodingError};
-use crate::filter::{self, FilterType};
 use crate::{
-    chunks::{pHYs, AncillaryChunks, ICCProfile, Unit, UnrecognizedChunk, IHDR, PLTE},
-    Channel, Pixel,
-};
-use crate::{
-    common::{BitDepth, Bitmap, ColorType, DPI},
-    Dimensions,
+    decoder::PNGDecoder,
+    errors::{ChunkError, PNGDecodingError},
+    filter::{self, FilterType},
+    {
+        chunks::{pHYs, AncillaryChunks, ICCProfile, Unit, UnrecognizedChunk, IHDR, PLTE},
+        Channel, Pixel,
+    },
+    {
+        common::{BitDepth, Bitmap, ColorType, DPI},
+        Dimensions,
+    },
 };
 
 #[derive(Default, Clone, Hash, PartialEq, Eq)]

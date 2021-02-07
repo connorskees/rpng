@@ -9,7 +9,7 @@
 //! | Interlacing      | None                                                 |          |
 //! | Ancillary Chunks | pHYs, tEXt, iTXt, bKGD, gAMA, sRGB, cHRM, iCCP, sBIT |          |
 
-#![deny(unsafe_code, missing_debug_implementations)]
+#![forbid(unsafe_code, missing_debug_implementations)]
 
 use serde_json;
 use std::fs::File;
@@ -30,7 +30,6 @@ pub mod errors;
 mod filter;
 mod interlacing;
 mod png;
-mod utils;
 
 #[allow(dead_code)]
 fn main() -> Result<(), PNGDecodingError> {

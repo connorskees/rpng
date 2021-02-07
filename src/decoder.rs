@@ -1,10 +1,12 @@
-use crate::chunks::{
-    bKGD, cHRM, gAMA, iCCP, iTXt, pHYs, sBIT, sRGB, tEXt, tRNS, AncillaryChunks, Chunk,
-    UnrecognizedChunk, IHDR, PLTE,
+use crate::{
+    chunks::{
+        bKGD, cHRM, gAMA, iCCP, iTXt, pHYs, sBIT, sRGB, tEXt, tRNS, AncillaryChunks, Chunk,
+        UnrecognizedChunk, IHDR, PLTE,
+    },
+    common::{get_bit_at, ColorType, CompressionType, HEADER, IEND},
+    errors::{ChunkError, PNGDecodingError},
+    PNG,
 };
-use crate::common::{get_bit_at, ColorType, CompressionType, HEADER, IEND};
-use crate::errors::{ChunkError, PNGDecodingError};
-use crate::PNG;
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct PNGDecoder;

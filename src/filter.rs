@@ -1,5 +1,6 @@
-use crate::errors::FilterError;
 use std::cmp::min;
+
+use crate::errors::FilterError;
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 #[repr(u8)]
