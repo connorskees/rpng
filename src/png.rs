@@ -217,6 +217,7 @@ impl Png {
     }
 }
 
+#[allow(dead_code)]
 fn combine_u8s_to_u16(bitmap: Vec<Vec<Vec<u8>>>) -> Vec<Vec<Vec<u16>>> {
     let mut b16: Vec<Vec<Vec<u16>>> = bitmap
         .iter()

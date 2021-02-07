@@ -1,5 +1,6 @@
 use std::ops::Index;
 
+#[cfg(feature = "serialize")]
 use serde::ser::{Serialize, SerializeSeq, Serializer};
 
 use crate::errors::MetadataError;
@@ -124,7 +125,8 @@ pub enum Channel {
     Sixteen(u16),
 }
 
-impl serde::Serialize for Channel {
+#[cfg(feature = "serialize")]
+impl Serialize for Channel {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -169,6 +171,7 @@ impl Pixel {
     }
 }
 
+#[cfg(feature = "serialize")]
 impl Serialize for Pixel {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -242,6 +245,10 @@ impl Bitmap {
 
     pub fn set_pixel(&mut self, x: usize, y: usize, pixel: Pixel) {
         self.rows[y][x] = pixel;
+    }
+
+    pub fn flip(&mut self) {
+        self.rows.reverse();
     }
 }
 

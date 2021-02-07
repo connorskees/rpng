@@ -11,8 +11,11 @@
 
 #![forbid(unsafe_code, missing_debug_implementations)]
 
+#[cfg(feature = "serialize")]
 use serde_json;
+#[cfg(feature = "serialize")]
 use std::fs::File;
+#[cfg(feature = "serialize")]
 use std::io::Write;
 
 pub use crate::common::*;
@@ -38,7 +41,11 @@ fn main() -> Result<(), PngDecodingError> {
     let pixels = png.pixels()?;
     // dbg!(&pixels);
 
-    let mut f = File::create("fogkfkg.json")?;
-    f.write_all(serde_json::to_string(&pixels.rows).unwrap().as_bytes())?;
+    #[cfg(feature = "serialize")]
+    {
+        let mut f = File::create("fogkfkg.json")?;
+        f.write_all(serde_json::to_string(&pixels.rows).unwrap().as_bytes())?;
+    }
+
     Ok(())
 }

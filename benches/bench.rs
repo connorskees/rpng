@@ -214,7 +214,7 @@ mod open {
             #[bench]
             fn $name(b: &mut Bencher) {
                 b.iter(|| {
-                    rpng::PNG::open(
+                    rpng::Png::open(
                         Path::new("tests\\test_images")
                             .join(&format!("{}", $path))
                             .join(&format!("{}.png", stringify!($name))),
@@ -234,7 +234,7 @@ mod pixels {
         ($name:ident, $path:expr) => {
             #[bench]
             fn $name(b: &mut Bencher) {
-                let png = rpng::PNG::open(
+                let png = rpng::Png::open(
                     Path::new("tests\\test_images")
                         .join(&format!("{}", $path))
                         .join(&format!("{}.png", stringify!($name))),
