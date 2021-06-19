@@ -125,6 +125,18 @@ pub enum Channel {
     Sixteen(u16),
 }
 
+impl Channel {
+    pub fn into_bytes(self) -> Vec<u8> {
+        match self {
+            Self::One(a) => vec![a as u8],
+            Self::Two(a) => vec![a],
+            Self::Four(a) => vec![a],
+            Self::Eight(a) => vec![a],
+            Self::Sixteen(a) => a.to_be_bytes().to_vec(),
+        }
+    }
+}
+
 #[cfg(feature = "serialize")]
 impl Serialize for Channel {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -167,6 +179,39 @@ impl Pixel {
             Self::Indexed(..) => 1,
             Self::GrayscaleAlpha(..) => 2,
             Self::Rgba { .. } => 4,
+        }
+    }
+
+    pub fn into_bytes(self) -> Vec<u8> {
+        match self {
+            Self::Grayscale(grayscale) => grayscale.into_bytes(),
+            Self::Rgb { red, green, blue } => {
+                vec![red.into_bytes(), green.into_bytes(), blue.into_bytes()]
+                    .into_iter()
+                    .flatten()
+                    .collect()
+            }
+            Self::Indexed(idx) => idx.into_bytes(),
+            Self::GrayscaleAlpha(grayscale, alpha) => {
+                vec![grayscale.into_bytes(), alpha.into_bytes()]
+                    .into_iter()
+                    .flatten()
+                    .collect()
+            }
+            Self::Rgba {
+                red,
+                green,
+                blue,
+                alpha,
+            } => vec![
+                red.into_bytes(),
+                green.into_bytes(),
+                blue.into_bytes(),
+                alpha.into_bytes(),
+            ]
+            .into_iter()
+            .flatten()
+            .collect(),
         }
     }
 }
@@ -249,6 +294,18 @@ impl Bitmap {
 
     pub fn flip(&mut self) {
         self.rows.reverse();
+    }
+
+    /// Convert pixels as flat array of bytes
+    pub fn into_buffer(self) -> Vec<u8> {
+        self.rows
+            .into_iter()
+            .flat_map(|row| {
+                row.into_iter()
+                    .flat_map(|pixel| pixel.into_bytes())
+                    .collect::<Vec<u8>>()
+            })
+            .collect()
     }
 }
 

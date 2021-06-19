@@ -9,6 +9,7 @@ use std::{
 use flate2::bufread::ZlibDecoder;
 
 use crate::{
+    chunks::tRNS,
     decoder::PngDecoder,
     errors::{ChunkError, PngDecodingError},
     filter::{self, FilterType},
@@ -47,6 +48,76 @@ impl Png {
     pub fn open(file_path: impl AsRef<Path>) -> Result<Self, PngDecodingError> {
         let file_size: usize = fs::metadata(&file_path)?.len() as usize;
         PngDecoder::read(BufReader::with_capacity(file_size, File::open(file_path)?))
+    }
+
+    fn get_pixel(&self, bytes: &mut [u8]) -> Pixel {
+        assert_eq!(
+            bytes.len() * 8,
+            self.ihdr.color_type.channels() as usize * self.ihdr.bit_depth as usize
+        );
+
+        let byte_offset = &mut 0;
+        fn get_next_channel(
+            bytes: &mut [u8],
+            bit_depth: BitDepth,
+            byte_offset: &mut usize,
+        ) -> Channel {
+            match bit_depth {
+                BitDepth::Eight => {
+                    let channel = Channel::Eight(bytes[*byte_offset]);
+                    *byte_offset += 1;
+                    channel
+                }
+                _ => todo!(),
+            }
+        }
+
+        match self.ihdr.color_type {
+            ColorType::Grayscale => {
+                Pixel::Grayscale(get_next_channel(bytes, self.ihdr.bit_depth, byte_offset))
+            }
+            ColorType::GrayscaleAlpha => Pixel::GrayscaleAlpha(
+                get_next_channel(bytes, self.ihdr.bit_depth, byte_offset),
+                get_next_channel(bytes, self.ihdr.bit_depth, byte_offset),
+            ),
+            ColorType::Indexed => {
+                if let Some(plte) = &self.plte {
+                    match self.ihdr.bit_depth {
+                        BitDepth::Sixteen => todo!(),
+                        _ => {
+                            let idx = bytes[0] as usize;
+                            let color = plte.entries[idx];
+                            let transparency = match &self.ancillary_chunks.tRNS {
+                                Some(tRNS::Indexed { entries }) => {
+                                    entries.get(idx).cloned().unwrap_or(u8::MAX)
+                                }
+                                _ => u8::MAX,
+                            };
+                            Pixel::Rgba {
+                                red: Channel::Eight(color.red as u8),
+                                green: Channel::Eight(color.green as u8),
+                                blue: Channel::Eight(color.blue as u8),
+                                alpha: Channel::Eight(transparency),
+                            }
+                        }
+                    }
+                } else {
+                    todo!()
+                }
+                // Pixel::Indexed(self.plte[get_next_channel(bytes, self.ihdr.bit_depth, byte_offset)])
+            }
+            ColorType::RGB => Pixel::Rgb {
+                red: get_next_channel(bytes, self.ihdr.bit_depth, byte_offset),
+                green: get_next_channel(bytes, self.ihdr.bit_depth, byte_offset),
+                blue: get_next_channel(bytes, self.ihdr.bit_depth, byte_offset),
+            },
+            ColorType::RGBA => Pixel::Rgba {
+                red: get_next_channel(bytes, self.ihdr.bit_depth, byte_offset),
+                green: get_next_channel(bytes, self.ihdr.bit_depth, byte_offset),
+                blue: get_next_channel(bytes, self.ihdr.bit_depth, byte_offset),
+                alpha: get_next_channel(bytes, self.ihdr.bit_depth, byte_offset),
+            },
+        }
     }
 
     pub fn pixels(&self) -> Result<Bitmap, PngDecodingError> {
@@ -98,61 +169,12 @@ impl Png {
             });
         }
 
-        fn get_pixel(bytes: &mut [u8], color_type: ColorType, bit_depth: BitDepth) -> Pixel {
-            assert_eq!(
-                bytes.len() * 8,
-                color_type.channels() as usize * bit_depth as usize
-            );
-
-            let byte_offset = &mut 0;
-            fn get_next_channel(
-                bytes: &mut [u8],
-                bit_depth: BitDepth,
-                byte_offset: &mut usize,
-            ) -> Channel {
-                match bit_depth {
-                    BitDepth::Eight => {
-                        let channel = Channel::Eight(bytes[*byte_offset]);
-                        *byte_offset += 1;
-                        channel
-                    }
-                    _ => todo!(),
-                }
-            }
-
-            match color_type {
-                ColorType::Grayscale => {
-                    Pixel::Grayscale(get_next_channel(bytes, bit_depth, byte_offset))
-                }
-                ColorType::GrayscaleAlpha => Pixel::GrayscaleAlpha(
-                    get_next_channel(bytes, bit_depth, byte_offset),
-                    get_next_channel(bytes, bit_depth, byte_offset),
-                ),
-                ColorType::Indexed => {
-                    Pixel::Indexed(get_next_channel(bytes, bit_depth, byte_offset))
-                }
-                ColorType::RGB => Pixel::Rgb {
-                    red: get_next_channel(bytes, bit_depth, byte_offset),
-                    green: get_next_channel(bytes, bit_depth, byte_offset),
-                    blue: get_next_channel(bytes, bit_depth, byte_offset),
-                },
-                ColorType::RGBA => Pixel::Rgba {
-                    red: get_next_channel(bytes, bit_depth, byte_offset),
-                    green: get_next_channel(bytes, bit_depth, byte_offset),
-                    blue: get_next_channel(bytes, bit_depth, byte_offset),
-                    alpha: get_next_channel(bytes, bit_depth, byte_offset),
-                },
-            }
-        }
-
         // convert Vec<Vec<Vec<u8>>> to Vec<Vec<Pixel>>
         let rows: Vec<Vec<Pixel>> = rows
             .into_iter()
             .map(|row| {
                 row.into_iter()
-                    .map(|mut pixel| {
-                        get_pixel(&mut pixel, self.ihdr.color_type, self.ihdr.bit_depth)
-                    })
+                    .map(|mut pixel| self.get_pixel(&mut pixel))
                     .collect()
             })
             .collect();
@@ -165,6 +187,14 @@ impl Png {
             width: self.ihdr.width as usize,
             height: self.ihdr.height as usize,
         }
+    }
+
+    pub const fn width(&self) -> u32 {
+        self.ihdr.width
+    }
+
+    pub const fn height(&self) -> u32 {
+        self.ihdr.height
     }
 
     pub fn palette(&self) -> Result<&PLTE, ChunkError> {

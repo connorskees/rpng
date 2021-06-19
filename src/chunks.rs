@@ -609,11 +609,10 @@ pub enum tRNS {
 
 impl fmt::Debug for tRNS {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use tRNS::*;
         match self {
-            Grayscale { .. } => write!(f, "{:?}", self),
-            RGB { .. } => write!(f, "{:?}", self),
-            Indexed { entries } => write!(f, "tRNS {{ {} entries }}", entries.len()),
+            tRNS::Grayscale { .. } => write!(f, "{:?}", self),
+            tRNS::RGB { .. } => write!(f, "{:?}", self),
+            tRNS::Indexed { entries } => write!(f, "tRNS {{ {} entries }}", entries.len()),
         }
     }
 }

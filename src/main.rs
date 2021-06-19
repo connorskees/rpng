@@ -38,7 +38,7 @@ mod png;
 fn main() -> Result<(), PngDecodingError> {
     let png = Png::open(std::env::args().nth(1).unwrap())?;
     dbg!(&png);
-    let pixels = png.pixels()?;
+    // let pixels = png.pixels()?;
     // dbg!(&pixels);
 
     #[cfg(feature = "serialize")]
