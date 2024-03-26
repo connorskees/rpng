@@ -10,69 +10,6 @@ pub const HEADER: [u8; 8] = [137u8, 80, 78, 71, 13, 10, 26, 10];
 /// The IEND chunk. It always has a length of 0, and so it is always the same between PNGs
 pub const IEND: [u8; 12] = [0u8, 0, 0, 0, 73, 69, 78, 68, 174, 66, 96, 130];
 
-/// Number of bits per color channel
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
-#[repr(u8)]
-pub enum BitDepth {
-    /// Colors are represented by a single bit. Black or white
-    One = 1,
-
-    /// Color channels can be 0-3
-    Two = 2,
-
-    /// Color channels can be 0-15
-    Four = 4,
-
-    /// Color channels can be 0-255
-    Eight = 8,
-
-    /// Color channels can be 0-65_535
-    Sixteen = 16,
-}
-
-impl BitDepth {
-    pub fn from_u8(bit_depth: u8) -> Result<BitDepth, MetadataError> {
-        match bit_depth {
-            1 => Ok(Self::One),
-            2 => Ok(Self::Two),
-            4 => Ok(Self::Four),
-            8 => Ok(Self::Eight),
-            16 => Ok(Self::Sixteen),
-            _ => Err(MetadataError::UnrecognizedBitDepth { bit_depth }),
-        }
-    }
-}
-
-impl Default for BitDepth {
-    fn default() -> Self {
-        Self::Eight
-    }
-}
-
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
-#[repr(u8)]
-/// Compression type used on IDAT chunks
-/// Currently, the only specified compression type is DEFLATE
-pub enum CompressionType {
-    /// zlib DEFLATE compression
-    Deflate = 0,
-}
-
-impl CompressionType {
-    pub fn from_u8(compression_type: u8) -> Result<CompressionType, MetadataError> {
-        match compression_type {
-            0 => Ok(CompressionType::Deflate),
-            _ => Err(MetadataError::UnrecognizedCompressionType { compression_type }),
-        }
-    }
-}
-
-impl Default for CompressionType {
-    fn default() -> Self {
-        Self::Deflate
-    }
-}
-
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 #[repr(u8)]
 pub enum ColorType {
@@ -103,8 +40,10 @@ impl ColorType {
         }
     }
 
-    /// Number of unique channels per pixel: for example, RGB has 3 channels (red, green, and blue); while
-    /// grayscale has 1 channel (grayscale)
+    /// Number of unique channels per pixel.
+    ///
+    /// For example, RGB has 3 channels (red, green, and blue), while grayscale
+    /// has 1 channel
     pub fn channels(self) -> u8 {
         match self {
             ColorType::Grayscale => 1,

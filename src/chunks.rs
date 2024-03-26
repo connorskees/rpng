@@ -7,10 +7,8 @@ use std::{
 use crc32fast::Hasher;
 
 use crate::{
-    common::{BitDepth, ColorType, CompressionType},
+    common::ColorType,
     errors::{ChunkError, MetadataError, PngDecodingError},
-    filter::FilterMethod,
-    interlacing::Interlacing,
 };
 
 /// The IHDR chunk contains important metadata for reading the image
@@ -18,22 +16,22 @@ use crate::{
 pub struct IHDR {
     pub width: u32,
     pub height: u32,
-    pub bit_depth: BitDepth,
+    pub bit_depth: u8,
     pub color_type: ColorType,
-    pub compression_type: CompressionType,
-    pub filter_method: FilterMethod,
-    pub interlace_method: Interlacing,
+    pub compression_type: u8,
+    pub filter_method: u8,
+    pub interlace_method: u8,
 }
 
 impl IHDR {
     pub fn new(
         width: u32,
         height: u32,
-        bit_depth: BitDepth,
+        bit_depth: u8,
         color_type: ColorType,
-        compression_type: CompressionType,
-        filter_method: FilterMethod,
-        interlace_method: Interlacing,
+        compression_type: u8,
+        filter_method: u8,
+        interlace_method: u8,
     ) -> Result<Self, MetadataError> {
         if !(0 < width && width < 2u32.pow(31)) {
             // between 0 and 2**31
@@ -51,15 +49,7 @@ impl IHDR {
 
         match color_type {
             ColorType::Grayscale => {
-                if ![
-                    BitDepth::One,
-                    BitDepth::Two,
-                    BitDepth::Four,
-                    BitDepth::Eight,
-                    BitDepth::Sixteen,
-                ]
-                .contains(&bit_depth)
-                {
+                if ![1, 2, 4, 8, 16].contains(&bit_depth) {
                     return Err(MetadataError::InvalidBitDepthForColorType {
                         bit_depth,
                         color_type,
@@ -67,7 +57,7 @@ impl IHDR {
                 }
             }
             ColorType::RGB => {
-                if ![BitDepth::Eight, BitDepth::Sixteen].contains(&bit_depth) {
+                if ![8, 16].contains(&bit_depth) {
                     return Err(MetadataError::InvalidBitDepthForColorType {
                         bit_depth,
                         color_type,
@@ -75,14 +65,7 @@ impl IHDR {
                 }
             }
             ColorType::Indexed => {
-                if ![
-                    BitDepth::One,
-                    BitDepth::Two,
-                    BitDepth::Four,
-                    BitDepth::Eight,
-                ]
-                .contains(&bit_depth)
-                {
+                if ![1, 2, 4, 8].contains(&bit_depth) {
                     return Err(MetadataError::InvalidBitDepthForColorType {
                         bit_depth,
                         color_type,
@@ -90,7 +73,7 @@ impl IHDR {
                 }
             }
             ColorType::GrayscaleAlpha => {
-                if ![BitDepth::Eight, BitDepth::Sixteen].contains(&bit_depth) {
+                if ![8, 16].contains(&bit_depth) {
                     return Err(MetadataError::InvalidBitDepthForColorType {
                         bit_depth,
                         color_type,
@@ -98,7 +81,7 @@ impl IHDR {
                 }
             }
             ColorType::RGBA => {
-                if ![BitDepth::Eight, BitDepth::Sixteen].contains(&bit_depth) {
+                if ![8, 16].contains(&bit_depth) {
                     return Err(MetadataError::InvalidBitDepthForColorType {
                         bit_depth,
                         color_type,
@@ -145,20 +128,19 @@ impl<'a> Chunk<'a> for IHDR {
         let height = u32::from_be_bytes(height_buffer);
 
         buf.read_exact(&mut bit_depth_buffer)?;
-        let bit_depth = BitDepth::from_u8(u8::from_be_bytes(bit_depth_buffer))?;
+        let bit_depth = u8::from_be_bytes(bit_depth_buffer);
 
         buf.read_exact(&mut color_type_buffer)?;
         let color_type = ColorType::from_u8(u8::from_be_bytes(color_type_buffer))?;
 
         buf.read_exact(&mut compression_type_buffer)?;
-        let compression_type =
-            CompressionType::from_u8(u8::from_be_bytes(compression_type_buffer))?;
+        let compression_type = u8::from_be_bytes(compression_type_buffer);
 
         buf.read_exact(&mut filter_method_buffer)?;
-        let filter_method = FilterMethod::from_u8(u8::from_be_bytes(filter_method_buffer))?;
+        let filter_method = u8::from_be_bytes(filter_method_buffer);
 
         buf.read_exact(&mut interlace_method_buffer)?;
-        let interlace_method = Interlacing::from_u8(u8::from_be_bytes(interlace_method_buffer))?;
+        let interlace_method = u8::from_be_bytes(interlace_method_buffer);
 
         Ok(IHDR::new(
             width,
@@ -459,7 +441,7 @@ impl<'a> Chunk<'a> for tEXt {
 pub struct iTXt {
     pub keyword: String,
     pub compressed: bool, // compression flag: 0=false; 1=true
-    pub compression_method: Option<CompressionType>,
+    pub compression_method: Option<u8>,
     pub language_tag: String,
     pub translated_keyword: String,
     pub text: String,
@@ -519,7 +501,7 @@ pub struct cHRM {
 #[allow(non_camel_case_types)]
 pub struct iCCP {
     pub profile_name: String,
-    pub compression_method: CompressionType,
+    pub compression_method: u8,
     pub compressed_profile: Vec<u8>,
 }
 

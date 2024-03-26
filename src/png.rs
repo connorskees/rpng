@@ -1,5 +1,4 @@
 use std::{
-    convert::AsRef,
     fmt,
     fs::{self, File},
     io::{BufReader, Read},
@@ -12,13 +11,13 @@ use crate::{
     chunks::tRNS,
     decoder::PngDecoder,
     errors::{ChunkError, PngDecodingError},
-    filter::{self, FilterType},
+    filter,
     {
         chunks::{pHYs, AncillaryChunks, ICCProfile, Unit, UnrecognizedChunk, IHDR, PLTE},
         Channel, Pixel,
     },
     {
-        common::{BitDepth, Bitmap, ColorType, DPI},
+        common::{Bitmap, ColorType, DPI},
         Dimensions,
     },
 };
@@ -57,13 +56,9 @@ impl Png {
         );
 
         let byte_offset = &mut 0;
-        fn get_next_channel(
-            bytes: &mut [u8],
-            bit_depth: BitDepth,
-            byte_offset: &mut usize,
-        ) -> Channel {
+        fn get_next_channel(bytes: &mut [u8], bit_depth: u8, byte_offset: &mut usize) -> Channel {
             match bit_depth {
-                BitDepth::Eight => {
+                8 => {
                     let channel = Channel::Eight(bytes[*byte_offset]);
                     *byte_offset += 1;
                     channel
@@ -83,7 +78,7 @@ impl Png {
             ColorType::Indexed => {
                 if let Some(plte) = &self.plte {
                     match self.ihdr.bit_depth {
-                        BitDepth::Sixteen => todo!(),
+                        16 => todo!(),
                         _ => {
                             let idx = bytes[0] as usize;
                             let color = plte.entries[idx];
@@ -143,29 +138,35 @@ impl Png {
             .collect::<Vec<Vec<u8>>>();
 
         for (idx, row) in filtered_rows.iter().enumerate() {
-            rows.push(match FilterType::from_u8(row[0])? {
-                FilterType::None => row[1..]
+            rows.push(match row[0] {
+                // none
+                0 => row[1..]
                     .chunks(chunk_length as usize)
                     .map(Vec::from)
                     .collect(),
-                FilterType::Sub => filter::sub(&row[1..], chunk_length, true),
-                FilterType::Up => filter::up(
+                // sub
+                1 => filter::sub(&row[1..], chunk_length, true),
+                // up
+                2 => filter::up(
                     &row[1..],
                     if idx == 0 { None } else { Some(&rows[idx - 1]) },
                     chunk_length,
                     true,
                 ),
-                FilterType::Average => filter::average(
+                // average
+                3 => filter::average(
                     &row[1..],
                     if idx == 0 { None } else { Some(&rows[idx - 1]) },
                     chunk_length,
                 ),
-                FilterType::Paeth => filter::paeth(
+                // paeth
+                4 => filter::paeth(
                     &row[1..],
                     if idx == 0 { None } else { Some(&rows[idx - 1]) },
                     chunk_length,
                     true,
                 ),
+                _ => todo!("invalid filter"),
             });
         }
 
@@ -276,4 +277,55 @@ fn combine_u8s_to_u16(bitmap: Vec<Vec<Vec<u8>>>) -> Vec<Vec<Vec<u16>>> {
         }
     }
     b16
+}
+
+#[derive(Debug)]
+pub struct PngBuilder {
+    width: u32,
+    height: u32,
+    buffer: Vec<u8>,
+    interlaced: bool,
+    color_type: ColorType,
+    bit_depth: u8,
+}
+
+impl PngBuilder {
+    pub fn new(width: u32, height: u32) -> Self {
+        PngBuilder {
+            width,
+            height,
+            buffer: Vec::new(),
+            interlaced: false,
+            color_type: ColorType::RGBA,
+            bit_depth: 8,
+        }
+    }
+
+    pub fn interlaced(&mut self, interlaced: bool) -> &mut Self {
+        self.interlaced = interlaced;
+        self
+    }
+
+    pub fn buffer(&mut self, buffer: Vec<u8>) -> &mut Self {
+        self.buffer = buffer;
+        self
+    }
+
+    pub fn finish(self) -> Png {
+        Png {
+            ihdr: IHDR {
+                width: self.width,
+                height: self.height,
+                bit_depth: self.bit_depth,
+                color_type: self.color_type,
+                compression_type: 0,
+                filter_method: 0,
+                interlace_method: 0,
+            },
+            plte: None,
+            idat: self.buffer,
+            unrecognized_chunks: Vec::new(),
+            ancillary_chunks: AncillaryChunks::new(),
+        }
+    }
 }

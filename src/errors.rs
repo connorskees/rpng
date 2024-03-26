@@ -1,6 +1,6 @@
 use std::{fmt, io};
 
-use crate::common::{BitDepth, ColorType};
+use crate::common::ColorType;
 
 /// Container for errors that can occur when decoding a PNG
 #[derive(Debug)]
@@ -18,7 +18,6 @@ pub enum PngDecodingError {
     /// IHDR length was found to be more or less than 13, which indicates a serious error
     InvalidIHDRLength(u32),
     MetadataError(MetadataError),
-    FilterError(FilterError),
     IoError(io::Error),
     ZeroLengthIDAT,
     Utf8Error(std::str::Utf8Error),
@@ -93,7 +92,7 @@ pub enum MetadataError {
     InvalidHeight { height: usize },
     /// An invalid bit depth and color type combination was found
     InvalidBitDepthForColorType {
-        bit_depth: BitDepth,
+        bit_depth: u8,
         color_type: ColorType,
     },
 }
@@ -149,28 +148,6 @@ impl fmt::Display for MetadataError {
     }
 }
 
-/// Errors related to filtering
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
-// TODO: consolidate with metadata error
-pub enum FilterError {
-    UnrecognizedFilterMethod(u16),
-    UnrecognizedFilterType(u8),
-}
-
-impl fmt::Display for FilterError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use FilterError::*;
-        match self {
-            UnrecognizedFilterMethod(val) => {
-                write!(f, "expected value in 0..=4, but found {}", val)
-            }
-            UnrecognizedFilterType(val) => {
-                write!(f, "expected value of 0, but found {}", val)
-            }
-        }
-    }
-}
-
 impl fmt::Display for PngDecodingError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use PngDecodingError::*;
@@ -185,9 +162,6 @@ impl fmt::Display for PngDecodingError {
                 write!(f, "expected 13, but found {}", len)
             }
             MetadataError(err) => {
-                write!(f, "{}", err)
-            }
-            FilterError(err) => {
                 write!(f, "{}", err)
             }
             IoError(err) => {
@@ -226,7 +200,6 @@ macro_rules! convert_to_decoding_error {
     };
 }
 
-convert_to_decoding_error!(FilterError);
 convert_to_decoding_error!(MetadataError);
 convert_to_decoding_error!(ChunkError);
 convert_to_decoding_error!(IoError, io::Error);

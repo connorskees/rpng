@@ -3,9 +3,9 @@ use crate::{
         bKGD, cHRM, gAMA, iCCP, iTXt, pHYs, sBIT, sRGB, tEXt, tRNS, AncillaryChunks, Chunk,
         UnrecognizedChunk, IHDR, PLTE,
     },
-    common::{get_bit_at, ColorType, CompressionType, HEADER, IEND},
+    common::{get_bit_at, ColorType, HEADER, IEND},
     errors::{ChunkError, PngDecodingError},
-    Png,
+    interlacing, Png,
 };
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
@@ -139,9 +139,7 @@ impl PngDecoder {
                     };
                     let compressed = u8::from_be_bytes(compressed_buffer) != 0;
                     let compression_method = if compressed {
-                        Some(CompressionType::from_u8(u8::from_be_bytes(
-                            compression_method_buffer,
-                        ))?)
+                        Some(u8::from_be_bytes(compression_method_buffer))
                     } else {
                         None
                     };
@@ -285,8 +283,7 @@ impl PngDecoder {
                     } else {
                         continue;
                     };
-                    let compression_method =
-                        CompressionType::from_u8(u8::from_be_bytes(compression_method_buffer))?;
+                    let compression_method = u8::from_be_bytes(compression_method_buffer);
                     ancillary_chunks.iCCP = Some(iCCP {
                         profile_name,
                         compression_method,
@@ -398,10 +395,12 @@ impl PngDecoder {
             f.read_exact(&mut crc)?;
         }
 
-        // idat = match ihdr.interlace_method {
-        //     Interlacing::None => idat,
-        //     Interlacing::Adam7 => Interlacing::adam7(idat)
-        // };
+        idat = match ihdr.interlace_method {
+            // adam7
+            1 => interlacing::decode_adam7(&idat),
+            // no interlacing or invalid value
+            _ => idat,
+        };
 
         Ok(Png {
             ihdr,
