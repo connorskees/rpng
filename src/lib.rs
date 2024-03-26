@@ -12,8 +12,7 @@ use std::io::Write;
 pub use crate::common::*;
 pub use crate::decoder::PngDecoder;
 pub use crate::filter::*;
-pub use crate::png::PngBuilder;
-pub use png::Png;
+pub use png::{Png, PngBuilder};
 
 pub mod chunks;
 mod common;

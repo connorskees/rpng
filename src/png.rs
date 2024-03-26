@@ -8,18 +8,11 @@ use std::{
 use flate2::bufread::ZlibDecoder;
 
 use crate::{
-    chunks::tRNS,
+    chunks::{pHYs, AncillaryChunks, ICCProfile, Unit, UnrecognizedChunk, IHDR, PLTE},
+    common::{Bitmap, ColorType, DPI},
     decoder::PngDecoder,
     errors::{ChunkError, PngDecodingError},
     filter,
-    {
-        chunks::{pHYs, AncillaryChunks, ICCProfile, Unit, UnrecognizedChunk, IHDR, PLTE},
-        Channel, Pixel,
-    },
-    {
-        common::{Bitmap, ColorType, DPI},
-        Dimensions,
-    },
 };
 
 #[derive(Default, Clone, Hash, PartialEq, Eq)]
@@ -49,145 +42,59 @@ impl Png {
         PngDecoder::read(BufReader::with_capacity(file_size, File::open(file_path)?))
     }
 
-    fn get_pixel(&self, bytes: &mut [u8]) -> Pixel {
-        assert_eq!(
-            bytes.len() * 8,
-            self.ihdr.color_type.channels() as usize * self.ihdr.bit_depth as usize
-        );
-
-        let byte_offset = &mut 0;
-        fn get_next_channel(bytes: &mut [u8], bit_depth: u8, byte_offset: &mut usize) -> Channel {
-            match bit_depth {
-                8 => {
-                    let channel = Channel::Eight(bytes[*byte_offset]);
-                    *byte_offset += 1;
-                    channel
-                }
-                _ => todo!(),
-            }
-        }
-
-        match self.ihdr.color_type {
-            ColorType::Grayscale => {
-                Pixel::Grayscale(get_next_channel(bytes, self.ihdr.bit_depth, byte_offset))
-            }
-            ColorType::GrayscaleAlpha => Pixel::GrayscaleAlpha(
-                get_next_channel(bytes, self.ihdr.bit_depth, byte_offset),
-                get_next_channel(bytes, self.ihdr.bit_depth, byte_offset),
-            ),
-            ColorType::Indexed => {
-                if let Some(plte) = &self.plte {
-                    match self.ihdr.bit_depth {
-                        16 => todo!(),
-                        _ => {
-                            let idx = bytes[0] as usize;
-                            let color = plte.entries[idx];
-                            let transparency = match &self.ancillary_chunks.tRNS {
-                                Some(tRNS::Indexed { entries }) => {
-                                    entries.get(idx).cloned().unwrap_or(u8::MAX)
-                                }
-                                _ => u8::MAX,
-                            };
-                            Pixel::Rgba {
-                                red: Channel::Eight(color.red as u8),
-                                green: Channel::Eight(color.green as u8),
-                                blue: Channel::Eight(color.blue as u8),
-                                alpha: Channel::Eight(transparency),
-                            }
-                        }
-                    }
-                } else {
-                    todo!()
-                }
-                // Pixel::Indexed(self.plte[get_next_channel(bytes, self.ihdr.bit_depth, byte_offset)])
-            }
-            ColorType::RGB => Pixel::Rgb {
-                red: get_next_channel(bytes, self.ihdr.bit_depth, byte_offset),
-                green: get_next_channel(bytes, self.ihdr.bit_depth, byte_offset),
-                blue: get_next_channel(bytes, self.ihdr.bit_depth, byte_offset),
-            },
-            ColorType::RGBA => Pixel::Rgba {
-                red: get_next_channel(bytes, self.ihdr.bit_depth, byte_offset),
-                green: get_next_channel(bytes, self.ihdr.bit_depth, byte_offset),
-                blue: get_next_channel(bytes, self.ihdr.bit_depth, byte_offset),
-                alpha: get_next_channel(bytes, self.ihdr.bit_depth, byte_offset),
-            },
-        }
-    }
-
-    pub fn pixels(&self) -> Result<Bitmap, PngDecodingError> {
-        let mut buffer: Vec<u8> = Vec::new();
+    pub fn decode(&self) -> Bitmap {
+        let mut decompressed_buffer = Vec::new();
         let mut zlib = ZlibDecoder::new(&self.idat as &[u8]);
-        let buf_len = zlib.read_to_end(&mut buffer)?;
-        if buf_len == 0 {
-            return Err(PngDecodingError::ZeroLengthIDAT);
+        let buf_len = zlib.read_to_end(&mut decompressed_buffer).unwrap();
+        assert_ne!(buf_len, 0, "zero length idat");
+
+        let width = self.ihdr.width as usize;
+        let height = self.ihdr.height as usize;
+
+        let mut decoded_buffer = vec![0; decompressed_buffer.len() - height];
+
+        let bytes_per_row = 1 + width * self.bpp();
+
+        for i in 0..height {
+            let raw_row_start = i * bytes_per_row;
+            let decoded_row_start = raw_row_start - i;
+            let start = decompressed_buffer[raw_row_start];
+            let raw_row =
+                &decompressed_buffer[(raw_row_start + 1)..(raw_row_start + bytes_per_row)];
+
+            let (prev, decoded_row) = decoded_buffer.split_at_mut(decoded_row_start);
+
+            let decoded_row = &mut decoded_row[..(bytes_per_row - 1)];
+
+            let prev = &prev[(prev.len().saturating_sub(bytes_per_row - 1))..];
+
+            if i != 0 {
+                debug_assert_eq!(prev.len(), raw_row.len());
+                debug_assert_eq!(prev.len(), decoded_row.len());
+            }
+
+            match start {
+                0 => {
+                    // nop
+                }
+                1 => filter::sub(raw_row, decoded_row, self.bpp()),
+                2 => filter::up(prev, raw_row, decoded_row),
+                3 => filter::average(prev, raw_row, decoded_row, self.bpp()),
+                4 => filter::paeth(prev, raw_row, decoded_row, self.bpp()),
+                _ => unimplemented!("{}", start),
+            }
         }
 
-        let mut rows: Vec<Vec<Vec<u8>>> = Vec::new();
-        let chunk_length: u8 = self.ihdr.color_type.channels();
-
-        // 1 is added to account for filter method byte
-        let row_length = 1
-            + (((f32::from(self.ihdr.bit_depth as u8) / 8_f32) * self.ihdr.width as f32).ceil()
-                as u32
-                * (u32::from(chunk_length)));
-
-        let filtered_rows: Vec<Vec<u8>> = buffer
-            .chunks(row_length as usize)
-            .map(Vec::from)
-            .collect::<Vec<Vec<u8>>>();
-
-        for (idx, row) in filtered_rows.iter().enumerate() {
-            rows.push(match row[0] {
-                // none
-                0 => row[1..]
-                    .chunks(chunk_length as usize)
-                    .map(Vec::from)
-                    .collect(),
-                // sub
-                1 => filter::sub(&row[1..], chunk_length, true),
-                // up
-                2 => filter::up(
-                    &row[1..],
-                    if idx == 0 { None } else { Some(&rows[idx - 1]) },
-                    chunk_length,
-                    true,
-                ),
-                // average
-                3 => filter::average(
-                    &row[1..],
-                    if idx == 0 { None } else { Some(&rows[idx - 1]) },
-                    chunk_length,
-                ),
-                // paeth
-                4 => filter::paeth(
-                    &row[1..],
-                    if idx == 0 { None } else { Some(&rows[idx - 1]) },
-                    chunk_length,
-                    true,
-                ),
-                _ => todo!("invalid filter"),
-            });
+        Bitmap {
+            width: self.ihdr.width,
+            height: self.ihdr.height,
+            bpp: self.bpp(),
+            buffer: decoded_buffer,
         }
-
-        // convert Vec<Vec<Vec<u8>>> to Vec<Vec<Pixel>>
-        let rows: Vec<Vec<Pixel>> = rows
-            .into_iter()
-            .map(|row| {
-                row.into_iter()
-                    .map(|mut pixel| self.get_pixel(&mut pixel))
-                    .collect()
-            })
-            .collect();
-
-        Ok(Bitmap::new(rows)?)
     }
 
-    pub const fn dimensions(&self) -> Dimensions {
-        Dimensions {
-            width: self.ihdr.width as usize,
-            height: self.ihdr.height as usize,
-        }
+    pub const fn dimensions(&self) -> (u32, u32) {
+        (self.ihdr.width, self.ihdr.height)
     }
 
     pub const fn width(&self) -> u32 {
@@ -240,43 +147,12 @@ impl Png {
     }
 
     /// `bpp` is defined as the number of bytes per complete pixel, rounding up to 1
-    pub fn bpp(&self) -> u8 {
+    pub fn bpp(&self) -> usize {
         std::cmp::max(
             1,
-            (self.ihdr.bit_depth as u8 / 8) * self.ihdr.color_type.channels(),
+            ((self.ihdr.bit_depth / 8) * self.ihdr.color_type.channels()) as usize,
         )
     }
-}
-
-#[allow(dead_code)]
-fn combine_u8s_to_u16(bitmap: Vec<Vec<Vec<u8>>>) -> Vec<Vec<Vec<u16>>> {
-    let mut b16: Vec<Vec<Vec<u16>>> = bitmap
-        .iter()
-        .map(|row| {
-            vec![row
-                .iter()
-                .map(|pixel| {
-                    pixel
-                        .iter()
-                        .map(|channel| u16::from(*channel))
-                        .collect::<Vec<u16>>()
-                })
-                .collect()]
-        })
-        .flatten()
-        .collect();
-    for row in b16.iter_mut() {
-        for pixel in row.iter_mut() {
-            if pixel.len() < 2 {
-                continue;
-            }
-            for channel in (0..pixel.len()).step_by(2) {
-                pixel[channel] += pixel[channel + 1];
-            }
-            pixel.pop();
-        }
-    }
-    b16
 }
 
 #[derive(Debug)]

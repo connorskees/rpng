@@ -1,5 +1,3 @@
-use std::ops::Index;
-
 #[cfg(feature = "serialize")]
 use serde::ser::{Serialize, SerializeSeq, Serializer};
 
@@ -10,20 +8,15 @@ pub const HEADER: [u8; 8] = [137u8, 80, 78, 71, 13, 10, 26, 10];
 /// The IEND chunk. It always has a length of 0, and so it is always the same between PNGs
 pub const IEND: [u8; 12] = [0u8, 0, 0, 0, 73, 69, 78, 68, 174, 66, 96, 130];
 
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Default)]
 #[repr(u8)]
 pub enum ColorType {
     Grayscale = 0,
     RGB = 2,
     Indexed = 3,
     GrayscaleAlpha = 4,
+    #[default]
     RGBA = 6,
-}
-
-impl Default for ColorType {
-    fn default() -> Self {
-        ColorType::RGBA
-    }
 }
 
 impl ColorType {
@@ -192,67 +185,40 @@ impl Serialize for Pixel {
     }
 }
 
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
-pub struct Dimensions {
-    pub width: usize,
-    pub height: usize,
-}
-
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Bitmap {
-    pub rows: Vec<Vec<Pixel>>,
-    dimensions: Dimensions,
+    pub buffer: Vec<u8>,
+    pub width: u32,
+    pub height: u32,
+    pub bpp: usize,
 }
 
 impl Bitmap {
-    pub fn new(rows: Vec<Vec<Pixel>>) -> Result<Bitmap, MetadataError> {
-        if rows.is_empty() || rows.len() > 2_usize.pow(31) {
-            return Err(MetadataError::InvalidHeight { height: rows.len() });
-        }
+    pub fn new(
+        width: u32,
+        height: u32,
+        bpp: usize,
+        buffer: Vec<u8>,
+    ) -> Result<Bitmap, MetadataError> {
+        // if rows.is_empty() || rows.len() > 2_usize.pow(31) {
+        //     return Err(MetadataError::InvalidHeight { height: rows.len() });
+        // }
 
         Ok(Bitmap {
-            dimensions: Dimensions {
-                width: rows[0].len(),
-                height: rows.len(),
-            },
-            rows,
+            width,
+            height,
+            bpp,
+            buffer,
         })
     }
 
-    pub const fn width(&self) -> usize {
-        self.dimensions.width
-    }
-
-    pub const fn height(&self) -> usize {
-        self.dimensions.height
-    }
-
-    pub fn set_pixel(&mut self, x: usize, y: usize, pixel: Pixel) {
-        self.rows[y][x] = pixel;
+    pub fn rows(&self) -> impl Iterator<Item = &[u8]> {
+        self.buffer.chunks_exact(self.width as usize * self.bpp)
     }
 
     pub fn flip(&mut self) {
-        self.rows.reverse();
-    }
-
-    /// Convert pixels as flat array of bytes
-    pub fn into_buffer(self) -> Vec<u8> {
-        self.rows
-            .into_iter()
-            .flat_map(|row| {
-                row.into_iter()
-                    .flat_map(|pixel| pixel.into_bytes())
-                    .collect::<Vec<u8>>()
-            })
-            .collect()
-    }
-}
-
-impl Index<[usize; 2]> for Bitmap {
-    type Output = Pixel;
-
-    fn index(&self, index: [usize; 2]) -> &Self::Output {
-        &self.rows[index[1]][index[0]]
+        todo!()
+        // self.rows.reverse();
     }
 }
 

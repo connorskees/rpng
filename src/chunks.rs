@@ -4,8 +4,6 @@ use std::{
     ops::Index,
 };
 
-use crc32fast::Hasher;
-
 use crate::{
     common::ColorType,
     errors::{ChunkError, MetadataError, PngDecodingError},
@@ -153,22 +151,19 @@ impl<'a> Chunk<'a> for IHDR {
         )?)
     }
 
-    fn into_bytes(self) -> Vec<u8> {
-        let mut buffer: Vec<u8> = Vec::with_capacity(4 + 13 + 4);
+    fn serialize(&self) -> Vec<u8> {
+        let mut buffer: Vec<u8> = Vec::with_capacity(4 + 13);
 
         buffer.extend(b"IHDR");
         buffer.extend(&self.width.to_be_bytes());
         buffer.extend(&self.height.to_be_bytes());
-        buffer.push(self.bit_depth as u8);
+        buffer.push(self.bit_depth);
         buffer.push(self.color_type as u8);
-        buffer.push(self.compression_type as u8);
-        buffer.push(self.filter_method as u8);
-        buffer.push(self.interlace_method as u8);
+        buffer.push(self.compression_type);
+        buffer.push(self.filter_method);
+        buffer.push(self.interlace_method);
 
-        let mut hasher = Hasher::new();
-        hasher.update(&buffer);
-        buffer.extend(&hasher.finalize().to_be_bytes());
-        assert_eq!(buffer.len(), 21);
+        debug_assert_eq!(buffer.len(), 17);
 
         buffer
     }
@@ -180,10 +175,11 @@ pub trait Chunk<'a> {
     const IS_RESERVED_FIELD: bool = false;
     const IS_SAFE_TO_COPY: bool;
     const NAME: &'a str;
+
     fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PngDecodingError>
     where
         Self: Sized;
-    fn into_bytes(self) -> Vec<u8>;
+    fn serialize(&self) -> Vec<u8>;
 }
 
 #[derive(Clone, Hash, PartialEq, Eq)]
@@ -307,7 +303,7 @@ impl<'a> Chunk<'a> for PLTE {
         Ok(PLTE { entries })
     }
 
-    fn into_bytes(self) -> Vec<u8> {
+    fn serialize(&self) -> Vec<u8> {
         todo!()
     }
 }
@@ -348,17 +344,13 @@ impl<'a> Chunk<'a> for pHYs {
         })
     }
 
-    fn into_bytes(self) -> Vec<u8> {
+    fn serialize(&self) -> Vec<u8> {
         let mut buffer: Vec<u8> = Vec::with_capacity(4 + 4 + 4 + 1 + 4);
 
         buffer.extend(b"pHYs");
         buffer.extend(&self.pixels_per_unit_x.to_be_bytes());
         buffer.extend(&self.pixels_per_unit_y.to_be_bytes());
         buffer.push(self.unit as u8);
-
-        let mut hasher = Hasher::new();
-        hasher.update(&buffer);
-        buffer.extend(&hasher.finalize().to_be_bytes());
 
         buffer
     }
@@ -420,16 +412,12 @@ impl<'a> Chunk<'a> for tEXt {
         Ok(tEXt { keyword, text })
     }
 
-    fn into_bytes(self) -> Vec<u8> {
+    fn serialize(&self) -> Vec<u8> {
         let mut buffer: Vec<u8> = Vec::with_capacity(4 + self.keyword.len() + self.text.len() + 4);
 
         buffer.extend(b"tEXt");
-        buffer.extend(self.keyword.into_bytes());
-        buffer.extend(self.text.into_bytes());
-
-        let mut hasher = Hasher::new();
-        hasher.update(&buffer);
-        buffer.extend(&hasher.finalize().to_be_bytes());
+        buffer.extend(self.keyword.as_bytes());
+        buffer.extend(self.text.as_bytes());
 
         buffer
     }
@@ -469,15 +457,11 @@ impl<'a> Chunk<'a> for gAMA {
         Ok(gAMA { gamma })
     }
 
-    fn into_bytes(self) -> Vec<u8> {
+    fn serialize(&self) -> Vec<u8> {
         let mut buffer: Vec<u8> = Vec::with_capacity(4 + 4 + 4);
 
         buffer.extend(b"gAMA");
         buffer.extend(&self.gamma.to_be_bytes());
-
-        let mut hasher = Hasher::new();
-        hasher.update(&buffer);
-        buffer.extend(&hasher.finalize().to_be_bytes());
 
         buffer
     }
@@ -592,8 +576,16 @@ pub enum tRNS {
 impl fmt::Debug for tRNS {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            tRNS::Grayscale { .. } => write!(f, "{:?}", self),
-            tRNS::RGB { .. } => write!(f, "{:?}", self),
+            tRNS::Grayscale { grayscale } => f
+                .debug_struct("tRNS::Grayscale")
+                .field("grayscale", grayscale)
+                .finish(),
+            tRNS::RGB { red, green, blue } => f
+                .debug_struct("tRNS::RGB")
+                .field("red", red)
+                .field("green", green)
+                .field("blue", blue)
+                .finish(),
             tRNS::Indexed { entries } => write!(f, "tRNS {{ {} entries }}", entries.len()),
         }
     }

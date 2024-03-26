@@ -1,145 +1,81 @@
-use std::cmp::min;
-
-pub fn sub(this_row: &[u8], chunk_size: u8, reverse: bool) -> Vec<Vec<u8>> {
-    let mut chunks: Vec<Vec<u8>> = this_row
-        .chunks(chunk_size as usize)
-        .map(Vec::from)
-        .collect();
-
-    for pixel_idx in 1..chunks.len() {
-        // start at 1 because first pixel is unchanged
-        for rgba_idx in 0..chunks[pixel_idx].len() {
-            let a = chunks[pixel_idx - 1][rgba_idx];
-            if reverse {
-                chunks[pixel_idx][rgba_idx] = chunks[pixel_idx][rgba_idx].wrapping_add(a);
-            } else {
-                chunks[pixel_idx][rgba_idx] = chunks[pixel_idx][rgba_idx].wrapping_sub(a);
-            }
-        }
+pub fn up(prev: &[u8], raw_row: &[u8], decoded_row: &mut [u8]) {
+    if prev.is_empty() {
+        decoded_row[..].copy_from_slice(raw_row);
+        return;
     }
 
-    chunks
-}
+    for i in 0..decoded_row.len() {
+        let prev = prev[i];
 
-pub fn up(
-    this_row: &[u8],
-    row_above: Option<&Vec<Vec<u8>>>,
-    chunk_size: u8,
-    reverse: bool,
-) -> Vec<Vec<u8>> {
-    let mut this_row_chunks: Vec<Vec<u8>> = this_row
-        .chunks(chunk_size as usize)
-        .map(Vec::from)
-        .collect();
-    let row_above: &Vec<Vec<u8>> = if let Some(ra) = row_above {
-        ra
-    } else {
-        return this_row_chunks;
-    };
-    for pixel_idx in 0..this_row_chunks.len() {
-        for rgba_idx in 0..this_row_chunks[pixel_idx].len() {
-            let b = row_above[pixel_idx][rgba_idx];
-            if reverse {
-                this_row_chunks[pixel_idx][rgba_idx] =
-                    this_row_chunks[pixel_idx][rgba_idx].wrapping_add(b);
-            } else {
-                this_row_chunks[pixel_idx][rgba_idx] =
-                    this_row_chunks[pixel_idx][rgba_idx].wrapping_sub(b);
-            }
-        }
+        decoded_row[i] = raw_row[i].wrapping_add(prev)
     }
-    this_row_chunks
 }
 
-pub fn average(this_row: &[u8], row_above: Option<&Vec<Vec<u8>>>, chunk_size: u8) -> Vec<Vec<u8>> {
-    let mut this_row_chunks: Vec<Vec<u8>> = this_row
-        .chunks(chunk_size as usize)
-        .map(Vec::from)
-        .collect();
-    for pixel_idx in 0..this_row_chunks.len() {
-        for rgba_idx in 0..this_row_chunks[pixel_idx].len() {
-            let a = if pixel_idx == 0 {
-                0
-            } else {
-                this_row_chunks[pixel_idx - 1][rgba_idx]
-            };
-            let b: u8 = if let Some(val) = row_above {
-                val[pixel_idx][rgba_idx]
-            } else {
-                0
-            };
-            this_row_chunks[pixel_idx][rgba_idx] = this_row_chunks[pixel_idx][rgba_idx]
-                .wrapping_add(((u16::from(a) + u16::from(b)) / 2) as u8);
-        }
+pub fn sub(raw_row: &[u8], decoded_row: &mut [u8], bytes_per_pixel: usize) {
+    decoded_row[..bytes_per_pixel].copy_from_slice(&raw_row[..bytes_per_pixel]);
+
+    for i in bytes_per_pixel..decoded_row.len() {
+        let prev = decoded_row[i - bytes_per_pixel];
+
+        decoded_row[i] = raw_row[i].wrapping_add(prev)
     }
-    this_row_chunks
 }
 
-pub fn paeth(
-    this_row: &[u8],
-    row_above: Option<&Vec<Vec<u8>>>,
-    chunk_size: u8,
-    reverse: bool,
-) -> Vec<Vec<u8>> {
-    let mut this_row_chunks: Vec<Vec<u8>> = this_row
-        .chunks(chunk_size as usize)
-        .map(Vec::from)
-        .collect();
-    let is_first_row: bool = row_above.is_none();
-    let placeholder: &Vec<Vec<u8>> = &Vec::new();
-    let above: &Vec<Vec<u8>> = if let Some(val) = row_above {
-        val
-    } else {
-        placeholder
-    };
-    for pixel_idx in 0..this_row_chunks.len() {
-        for rgba_idx in 0..this_row_chunks[pixel_idx].len() {
-            let p: u8 = if pixel_idx == 0 {
-                // the first pixel has no neighbors to the left, so we treat `a` and `c` as 0
-                // paeth_predictor(0, b, 0) = b, so we can just directly set `p = b`
-                if is_first_row {
-                    0
-                } else {
-                    above[pixel_idx][rgba_idx]
-                } // above
-            } else {
-                let a = this_row_chunks[pixel_idx - 1][rgba_idx]; // left
-                let b = if is_first_row {
-                    0
-                } else {
-                    above[pixel_idx][rgba_idx]
-                }; // above
-                let c = if is_first_row {
-                    0
-                } else {
-                    above[pixel_idx - 1][rgba_idx]
-                }; // above left
-                paeth_predictor(i16::from(a), i16::from(b), i16::from(c))
-            };
-            if reverse {
-                this_row_chunks[pixel_idx][rgba_idx] =
-                    this_row_chunks[pixel_idx][rgba_idx].wrapping_add(p);
-            } else {
-                this_row_chunks[pixel_idx][rgba_idx] =
-                    this_row_chunks[pixel_idx][rgba_idx].wrapping_sub(p);
-            }
-        }
+pub fn average(prev: &[u8], raw_row: &[u8], decoded_row: &mut [u8], bytes_per_pixel: usize) {
+    for i in 0..bytes_per_pixel {
+        decoded_row[i] = raw_row[i].wrapping_add(prev[i] / 2);
     }
-    this_row_chunks
+
+    for i in bytes_per_pixel..decoded_row.len() {
+        let up = prev[i];
+        let left = decoded_row[i - bytes_per_pixel];
+
+        let val2 = ((u16::from(up) + u16::from(left)) / 2) as u8;
+        let val = (up >> 1).wrapping_add(left >> 1) + (up & left & 0b1);
+
+        if val2 != val {
+            println!("{up}:{left}:{val2}:{val}");
+        }
+
+        decoded_row[i] = raw_row[i].wrapping_add(val);
+    }
 }
 
+pub fn paeth(prev: &[u8], raw_row: &[u8], decoded_row: &mut [u8], bytes_per_pixel: usize) {
+    for i in 0..bytes_per_pixel {
+        let up = prev[i];
+        let left = 0;
+        let upper_left = 0;
+
+        let val = paeth_predictor(left, i16::from(up), upper_left);
+
+        decoded_row[i] = raw_row[i].wrapping_add(val)
+    }
+
+    for i in bytes_per_pixel..decoded_row.len() {
+        let up = prev[i];
+        let left = decoded_row[i - bytes_per_pixel];
+        let upper_left = prev[i - bytes_per_pixel];
+
+        let val = paeth_predictor(i16::from(left), i16::from(up), i16::from(upper_left));
+
+        decoded_row[i] = raw_row[i].wrapping_add(val)
+    }
+}
+
+// a = left, b = above, c = upper left
 fn paeth_predictor(a: i16, b: i16, c: i16) -> u8 {
     let p = a + b - c;
     let pa = (p - a).abs();
     let pb = (p - b).abs();
     let pc = (p - c).abs();
 
-    match min(min(pa, pb), pc) {
-        // order here for ties is important
-        diff if diff == pa => a as u8,
-        diff if diff == pb => b as u8,
-        diff if diff == pc => c as u8,
-        _ => unreachable!(),
+    if pa <= pb && pa <= pc {
+        (a % 256) as u8
+    } else if pb <= pc {
+        (b % 256) as u8
+    } else {
+        (c % 256) as u8
     }
 }
 
