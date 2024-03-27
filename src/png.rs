@@ -20,6 +20,8 @@ pub struct Png {
     pub ihdr: IHDR,
     pub plte: Option<PLTE>,
     pub idat: Vec<u8>,
+    /// If present, the raw image data. No decoding necessary
+    pub decoded_buffer: Option<Vec<u8>>,
     pub unrecognized_chunks: Vec<UnrecognizedChunk>,
     pub ancillary_chunks: AncillaryChunks,
 }
@@ -177,12 +179,17 @@ impl PngBuilder {
         }
     }
 
-    pub fn interlaced(&mut self, interlaced: bool) -> &mut Self {
+    pub fn interlaced(mut self, interlaced: bool) -> Self {
         self.interlaced = interlaced;
         self
     }
 
-    pub fn buffer(&mut self, buffer: Vec<u8>) -> &mut Self {
+    pub fn color_type(mut self, color_type: ColorType) -> Self {
+        self.color_type = color_type;
+        self
+    }
+
+    pub fn buffer(mut self, buffer: Vec<u8>) -> Self {
         self.buffer = buffer;
         self
     }
@@ -199,6 +206,7 @@ impl PngBuilder {
                 interlace_method: 0,
             },
             plte: None,
+            decoded_buffer: Some(self.buffer.clone()),
             idat: self.buffer,
             unrecognized_chunks: Vec::new(),
             ancillary_chunks: AncillaryChunks::new(),

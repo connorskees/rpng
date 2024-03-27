@@ -49,7 +49,10 @@ impl Png {
             width: self.width(),
             height: self.height(),
             bpp: self.bpp(),
-            raw_buffer: self.decode().buffer,
+            raw_buffer: self
+                .decoded_buffer
+                .clone()
+                .unwrap_or_else(|| self.decode().buffer),
         };
 
         self.write_chunk(&chunk, buffer)?;
@@ -66,10 +69,7 @@ struct DataChunk {
 }
 
 impl<'a> Chunk<'a> for DataChunk {
-    const IS_CRITICAL: bool = true;
-    const IS_PUBLIC: bool = true;
-    const IS_SAFE_TO_COPY: bool = true;
-    const NAME: &'a str = "IDAT";
+    const NAME: [u8; 4] = *b"IDAT";
 
     fn parse<T: Read + std::io::prelude::BufRead>(
         _length: u32,

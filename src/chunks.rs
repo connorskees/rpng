@@ -45,48 +45,28 @@ impl IHDR {
             });
         }
 
-        match color_type {
-            ColorType::Grayscale => {
-                if ![1, 2, 4, 8, 16].contains(&bit_depth) {
-                    return Err(MetadataError::InvalidBitDepthForColorType {
-                        bit_depth,
-                        color_type,
-                    });
-                }
-            }
-            ColorType::RGB => {
-                if ![8, 16].contains(&bit_depth) {
-                    return Err(MetadataError::InvalidBitDepthForColorType {
-                        bit_depth,
-                        color_type,
-                    });
-                }
-            }
-            ColorType::Indexed => {
-                if ![1, 2, 4, 8].contains(&bit_depth) {
-                    return Err(MetadataError::InvalidBitDepthForColorType {
-                        bit_depth,
-                        color_type,
-                    });
-                }
-            }
-            ColorType::GrayscaleAlpha => {
-                if ![8, 16].contains(&bit_depth) {
-                    return Err(MetadataError::InvalidBitDepthForColorType {
-                        bit_depth,
-                        color_type,
-                    });
-                }
-            }
-            ColorType::RGBA => {
-                if ![8, 16].contains(&bit_depth) {
-                    return Err(MetadataError::InvalidBitDepthForColorType {
-                        bit_depth,
-                        color_type,
-                    });
-                }
-            }
+        static VALID_COLOR_TYPES: [&[u8]; 7] = [
+            // grayscale (0)
+            &[1, 2, 4, 8, 16],
+            &[],
+            // rgb (2)
+            &[8, 16],
+            // indexed (3)
+            &[1, 2, 4, 8],
+            // grayscale alpha (4)
+            &[8, 16],
+            &[],
+            // rgba (6)
+            &[8, 16],
+        ];
+
+        if !VALID_COLOR_TYPES[color_type as usize].contains(&bit_depth) {
+            return Err(MetadataError::InvalidBitDepthForColorType {
+                bit_depth,
+                color_type,
+            });
         }
+
         Ok(Self {
             width,
             height,
@@ -100,10 +80,7 @@ impl IHDR {
 }
 
 impl<'a> Chunk<'a> for IHDR {
-    const IS_CRITICAL: bool = true;
-    const IS_PUBLIC: bool = true;
-    const IS_SAFE_TO_COPY: bool = false;
-    const NAME: &'a str = "IHDR";
+    const NAME: [u8; 4] = *b"IHDR";
 
     fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PngDecodingError> {
         let (mut width_buffer, mut height_buffer) = ([0u8; 4], [0u8; 4]);
@@ -169,12 +146,17 @@ impl<'a> Chunk<'a> for IHDR {
     }
 }
 
+const fn is_upper(b: u8) -> bool {
+    (b & 0b0010_0000) == 0
+}
+
 pub trait Chunk<'a> {
-    const IS_CRITICAL: bool;
-    const IS_PUBLIC: bool;
-    const IS_RESERVED_FIELD: bool = false;
-    const IS_SAFE_TO_COPY: bool;
-    const NAME: &'a str;
+    const NAME: [u8; 4];
+
+    const IS_CRITICAL: bool = is_upper(Self::NAME[0]);
+    const IS_PUBLIC: bool = is_upper(Self::NAME[1]);
+    const IS_RESERVED_FIELD: bool = is_upper(Self::NAME[2]);
+    const IS_SAFE_TO_COPY: bool = is_upper(Self::NAME[3]);
 
     fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PngDecodingError>
     where
@@ -286,10 +268,7 @@ impl Index<u16> for PLTE {
 }
 
 impl<'a> Chunk<'a> for PLTE {
-    const IS_CRITICAL: bool = true;
-    const IS_PUBLIC: bool = true;
-    const IS_SAFE_TO_COPY: bool = true;
-    const NAME: &'a str = "PLTE";
+    const NAME: [u8; 4] = *b"PLTE";
 
     fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PngDecodingError> {
         if length % 3 != 0 {
@@ -318,10 +297,7 @@ pub struct pHYs {
 }
 
 impl<'a> Chunk<'a> for pHYs {
-    const IS_CRITICAL: bool = false;
-    const IS_PUBLIC: bool = true;
-    const IS_SAFE_TO_COPY: bool = true;
-    const NAME: &'a str = "pHYs";
+    const NAME: [u8; 4] = *b"pHYs";
 
     fn parse<T: Read + BufRead>(_length: u32, buf: &mut T) -> Result<Self, PngDecodingError> {
         let mut pixels_per_x_buffer = [0u8; 4];
@@ -388,10 +364,7 @@ pub struct tEXt {
 }
 
 impl<'a> Chunk<'a> for tEXt {
-    const IS_CRITICAL: bool = false;
-    const IS_PUBLIC: bool = true;
-    const IS_SAFE_TO_COPY: bool = true;
-    const NAME: &'a str = "tEXt";
+    const NAME: [u8; 4] = *b"tEXt";
 
     fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PngDecodingError> {
         let mut keyword_buffer: Vec<u8> = Vec::new();
@@ -442,10 +415,7 @@ pub struct gAMA {
 }
 
 impl<'a> Chunk<'a> for gAMA {
-    const IS_CRITICAL: bool = false;
-    const IS_PUBLIC: bool = true;
-    const IS_SAFE_TO_COPY: bool = true;
-    const NAME: &'a str = "gAMA";
+    const NAME: [u8; 4] = *b"gAMA";
 
     fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PngDecodingError> {
         if length != 4 {

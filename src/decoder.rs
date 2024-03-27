@@ -405,6 +405,7 @@ impl PngDecoder {
         Ok(Png {
             ihdr,
             idat,
+            decoded_buffer: None,
             unrecognized_chunks,
             ancillary_chunks,
             plte,
