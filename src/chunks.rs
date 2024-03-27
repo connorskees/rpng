@@ -79,9 +79,11 @@ impl IHDR {
     }
 }
 
-impl<'a> Chunk<'a> for IHDR {
+impl<'a> NamedChunk<'a> for IHDR {
     const NAME: [u8; 4] = *b"IHDR";
+}
 
+impl<'a> Chunk<'a> for IHDR {
     fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PngDecodingError> {
         let (mut width_buffer, mut height_buffer) = ([0u8; 4], [0u8; 4]);
         let (
@@ -128,21 +130,14 @@ impl<'a> Chunk<'a> for IHDR {
         )?)
     }
 
-    fn serialize(&self) -> Vec<u8> {
-        let mut buffer: Vec<u8> = Vec::with_capacity(4 + 13);
-
-        buffer.extend(b"IHDR");
-        buffer.extend(&self.width.to_be_bytes());
-        buffer.extend(&self.height.to_be_bytes());
+    fn serialize(&self, buffer: &mut Vec<u8>) {
+        buffer.extend_from_slice(&self.width.to_be_bytes());
+        buffer.extend_from_slice(&self.height.to_be_bytes());
         buffer.push(self.bit_depth);
         buffer.push(self.color_type as u8);
         buffer.push(self.compression_type);
         buffer.push(self.filter_method);
         buffer.push(self.interlace_method);
-
-        debug_assert_eq!(buffer.len(), 17);
-
-        buffer
     }
 }
 
@@ -151,23 +146,32 @@ const fn is_upper(b: u8) -> bool {
 }
 
 pub trait Chunk<'a> {
+    fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PngDecodingError>
+    where
+        Self: Sized;
+    fn serialize(&self, buffer: &mut Vec<u8>);
+
+    fn size_hint(&self) -> usize
+    where
+        Self: Sized,
+    {
+        std::mem::size_of::<Self>()
+    }
+}
+
+pub trait NamedChunk<'a>: Chunk<'a> {
     const NAME: [u8; 4];
 
     const IS_CRITICAL: bool = is_upper(Self::NAME[0]);
     const IS_PUBLIC: bool = is_upper(Self::NAME[1]);
     const IS_RESERVED_FIELD: bool = is_upper(Self::NAME[2]);
     const IS_SAFE_TO_COPY: bool = is_upper(Self::NAME[3]);
-
-    fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PngDecodingError>
-    where
-        Self: Sized;
-    fn serialize(&self) -> Vec<u8>;
 }
 
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct UnrecognizedChunk {
     pub length: u32,
-    pub chunk_type: String,
+    pub chunk_type: [u8; 4],
     pub bytes: Vec<u8>,
     pub is_critical: bool,
     pub is_public: bool,
@@ -267,9 +271,11 @@ impl Index<u16> for PLTE {
     }
 }
 
-impl<'a> Chunk<'a> for PLTE {
+impl<'a> NamedChunk<'a> for PLTE {
     const NAME: [u8; 4] = *b"PLTE";
+}
 
+impl<'a> Chunk<'a> for PLTE {
     fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PngDecodingError> {
         if length % 3 != 0 {
             return Err(ChunkError::InvalidPLTELength.into());
@@ -282,7 +288,7 @@ impl<'a> Chunk<'a> for PLTE {
         Ok(PLTE { entries })
     }
 
-    fn serialize(&self) -> Vec<u8> {
+    fn serialize(&self, _buffer: &mut Vec<u8>) {
         todo!()
     }
 }
@@ -296,9 +302,11 @@ pub struct pHYs {
     pub unit: Unit,
 }
 
-impl<'a> Chunk<'a> for pHYs {
+impl<'a> NamedChunk<'a> for pHYs {
     const NAME: [u8; 4] = *b"pHYs";
+}
 
+impl<'a> Chunk<'a> for pHYs {
     fn parse<T: Read + BufRead>(_length: u32, buf: &mut T) -> Result<Self, PngDecodingError> {
         let mut pixels_per_x_buffer = [0u8; 4];
         let mut pixels_per_y_buffer = [0u8; 4];
@@ -320,15 +328,10 @@ impl<'a> Chunk<'a> for pHYs {
         })
     }
 
-    fn serialize(&self) -> Vec<u8> {
-        let mut buffer: Vec<u8> = Vec::with_capacity(4 + 4 + 4 + 1 + 4);
-
-        buffer.extend(b"pHYs");
-        buffer.extend(&self.pixels_per_unit_x.to_be_bytes());
-        buffer.extend(&self.pixels_per_unit_y.to_be_bytes());
+    fn serialize(&self, buffer: &mut Vec<u8>) {
+        buffer.extend_from_slice(&self.pixels_per_unit_x.to_be_bytes());
+        buffer.extend_from_slice(&self.pixels_per_unit_y.to_be_bytes());
         buffer.push(self.unit as u8);
-
-        buffer
     }
 }
 
@@ -359,13 +362,16 @@ impl Unit {
 #[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub struct tEXt {
+    // todo: vec<u8> and include nullbyte, or change serialization
     pub keyword: String,
     pub text: String,
 }
 
-impl<'a> Chunk<'a> for tEXt {
+impl<'a> NamedChunk<'a> for tEXt {
     const NAME: [u8; 4] = *b"tEXt";
+}
 
+impl<'a> Chunk<'a> for tEXt {
     fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PngDecodingError> {
         let mut keyword_buffer: Vec<u8> = Vec::new();
         let keyword_len = buf.read_until(b'\0', &mut keyword_buffer)?;
@@ -385,14 +391,16 @@ impl<'a> Chunk<'a> for tEXt {
         Ok(tEXt { keyword, text })
     }
 
-    fn serialize(&self) -> Vec<u8> {
-        let mut buffer: Vec<u8> = Vec::with_capacity(4 + self.keyword.len() + self.text.len() + 4);
+    fn serialize(&self, buffer: &mut Vec<u8>) {
+        buffer.extend_from_slice(self.keyword.as_bytes());
+        buffer.extend_from_slice(self.text.as_bytes());
+    }
 
-        buffer.extend(b"tEXt");
-        buffer.extend(self.keyword.as_bytes());
-        buffer.extend(self.text.as_bytes());
-
-        buffer
+    fn size_hint(&self) -> usize
+    where
+        Self: Sized,
+    {
+        self.keyword.len() + self.text.len()
     }
 }
 
@@ -414,9 +422,11 @@ pub struct gAMA {
     pub gamma: u32,
 }
 
-impl<'a> Chunk<'a> for gAMA {
+impl<'a> NamedChunk<'a> for gAMA {
     const NAME: [u8; 4] = *b"gAMA";
+}
 
+impl<'a> Chunk<'a> for gAMA {
     fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PngDecodingError> {
         if length != 4 {
             return Err(ChunkError::InvalidgAMALength.into());
@@ -427,13 +437,8 @@ impl<'a> Chunk<'a> for gAMA {
         Ok(gAMA { gamma })
     }
 
-    fn serialize(&self) -> Vec<u8> {
-        let mut buffer: Vec<u8> = Vec::with_capacity(4 + 4 + 4);
-
-        buffer.extend(b"gAMA");
-        buffer.extend(&self.gamma.to_be_bytes());
-
-        buffer
+    fn serialize(&self, buffer: &mut Vec<u8>) {
+        buffer.extend_from_slice(&self.gamma.to_be_bytes());
     }
 }
 
@@ -450,18 +455,135 @@ pub struct cHRM {
     pub blue_y: u32,
 }
 
+impl<'a> NamedChunk<'a> for cHRM {
+    const NAME: [u8; 4] = *b"cHRM";
+}
+
+impl<'a> Chunk<'a> for cHRM {
+    fn parse<T: Read + BufRead>(_length: u32, buf: &mut T) -> Result<Self, PngDecodingError>
+    where
+        Self: Sized,
+    {
+        let (
+            mut white_point_x_buffer,
+            mut white_point_y_buffer,
+            mut red_x_buffer,
+            mut red_y_buffer,
+            mut green_x_buffer,
+            mut green_y_buffer,
+            mut blue_x_buffer,
+            mut blue_y_buffer,
+        ) = (
+            [0u8; 4], [0u8; 4], [0u8; 4], [0u8; 4], [0u8; 4], [0u8; 4], [0u8; 4], [0u8; 4],
+        );
+
+        buf.read_exact(&mut white_point_x_buffer)?;
+        let white_point_x = u32::from_be_bytes(white_point_x_buffer);
+
+        buf.read_exact(&mut white_point_y_buffer)?;
+        let white_point_y = u32::from_be_bytes(white_point_y_buffer);
+
+        buf.read_exact(&mut red_x_buffer)?;
+        let red_x = u32::from_be_bytes(red_x_buffer);
+
+        buf.read_exact(&mut red_y_buffer)?;
+        let red_y = u32::from_be_bytes(red_y_buffer);
+
+        buf.read_exact(&mut green_x_buffer)?;
+        let green_x = u32::from_be_bytes(green_x_buffer);
+
+        buf.read_exact(&mut green_y_buffer)?;
+        let green_y = u32::from_be_bytes(green_y_buffer);
+
+        buf.read_exact(&mut blue_x_buffer)?;
+        let blue_x = u32::from_be_bytes(blue_x_buffer);
+
+        buf.read_exact(&mut blue_y_buffer)?;
+        let blue_y = u32::from_be_bytes(blue_y_buffer);
+
+        Ok(cHRM {
+            white_point_x,
+            white_point_y,
+            red_x,
+            red_y,
+            green_x,
+            green_y,
+            blue_x,
+            blue_y,
+        })
+    }
+
+    fn serialize(&self, buffer: &mut Vec<u8>) {
+        buffer.extend_from_slice(&self.white_point_x.to_be_bytes());
+        buffer.extend_from_slice(&self.white_point_y.to_be_bytes());
+        buffer.extend_from_slice(&self.red_x.to_be_bytes());
+        buffer.extend_from_slice(&self.red_y.to_be_bytes());
+        buffer.extend_from_slice(&self.green_x.to_be_bytes());
+        buffer.extend_from_slice(&self.green_y.to_be_bytes());
+        buffer.extend_from_slice(&self.blue_x.to_be_bytes());
+        buffer.extend_from_slice(&self.blue_y.to_be_bytes());
+    }
+}
+
 /// Contains information for image's [ICC profile](https://en.wikipedia.org/wiki/ICC_profile)
 #[derive(Default, Clone, Hash, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub struct iCCP {
-    pub profile_name: String,
+    pub profile_name: Vec<u8>,
     pub compression_method: u8,
     pub compressed_profile: Vec<u8>,
 }
 
+impl<'a> Chunk<'a> for iCCP {
+    fn parse<T: Read + BufRead>(length: u32, buf: &mut T) -> Result<Self, PngDecodingError>
+    where
+        Self: Sized,
+    {
+        let mut profile_name: Vec<u8> = Vec::new();
+        let mut compression_method_buffer = [0];
+
+        let profile_name_len = buf.read_until(b'\0', &mut profile_name)?;
+        buf.read_exact(&mut compression_method_buffer)?;
+
+        let compression_method = u8::from_be_bytes(compression_method_buffer);
+
+        let remaining_length = length - (profile_name_len as u32) - 1;
+
+        let mut compressed_profile: Vec<u8> = vec![0; remaining_length as usize];
+        buf.read_exact(&mut compressed_profile)?;
+
+        Ok(iCCP {
+            profile_name,
+            compression_method,
+            compressed_profile,
+        })
+    }
+
+    fn serialize(&self, buffer: &mut Vec<u8>) {
+        buffer.extend_from_slice(&self.profile_name);
+        buffer.push(self.compression_method);
+        buffer.extend_from_slice(&self.compressed_profile);
+    }
+
+    fn size_hint(&self) -> usize
+    where
+        Self: Sized,
+    {
+        self.profile_name.len() + 1 + self.compressed_profile.len()
+    }
+}
+
+impl<'a> NamedChunk<'a> for iCCP {
+    const NAME: [u8; 4] = *b"iCCP";
+}
+
 impl fmt::Debug for iCCP {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "iCCP {{ {} }}", self.profile_name)
+        write!(
+            f,
+            "iCCP {{ {} }}",
+            String::from_utf8_lossy(&self.profile_name)
+        )
     }
 }
 

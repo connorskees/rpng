@@ -39,7 +39,7 @@ pub enum ChunkError {
     /// The length of the gAMA chunk is known to be 4 bytes; however, this was not found
     InvalidgAMALength,
     /// A critical chunk (specified by a capital first letter) was not recognized
-    UnrecognizedCriticalChunk(String),
+    UnrecognizedCriticalChunk([u8; 4]),
     /// An sRGB value outside the range `0..=3` was found
     UnrecognizedsRGBValue(u8),
 }
@@ -49,7 +49,11 @@ impl fmt::Display for ChunkError {
         use ChunkError::*;
         match self {
             UnrecognizedCriticalChunk(name) => {
-                write!(f, "found unrecognized critical chunk '{}'", name)
+                write!(
+                    f,
+                    "found unrecognized critical chunk '{}'",
+                    String::from_utf8_lossy(name)
+                )
             }
             UnexpectedPLTEChunk => {
                 write!(f, "unexpected PLTE chunk found")

@@ -33,16 +33,13 @@ impl PngDecoder {
             f.read_exact(&mut length_buffer)?;
             let length: u32 = u32::from_be_bytes(length_buffer);
 
-            let mut chunk_type_buffer: [u8; 4] = [0; 4];
-            f.read_exact(&mut chunk_type_buffer)?;
-            let chunk_type = std::str::from_utf8(&chunk_type_buffer)?;
+            let mut chunk_type: [u8; 4] = [0; 4];
+            f.read_exact(&mut chunk_type)?;
 
-            match chunk_type {
+            match &chunk_type {
                 // Critical
-                "IHDR" => {
-                    ihdr = IHDR::parse(length, &mut f)?;
-                }
-                "PLTE" => {
+                b"IHDR" => ihdr = IHDR::parse(length, &mut f)?,
+                b"PLTE" => {
                     match ihdr.color_type {
                         ColorType::Indexed | ColorType::RGB | ColorType::RGBA => {}
                         ColorType::Grayscale | ColorType::GrayscaleAlpha => {
@@ -52,7 +49,7 @@ impl PngDecoder {
 
                     plte = Some(PLTE::parse(length, &mut f)?);
                 }
-                "tRNS" => match ihdr.color_type {
+                b"tRNS" => match ihdr.color_type {
                     ColorType::Grayscale => {
                         let mut grayscale_buffer = [0u8; 2];
                         f.read_exact(&mut grayscale_buffer)?;
@@ -81,12 +78,12 @@ impl PngDecoder {
                     }
                     ColorType::RGBA | ColorType::GrayscaleAlpha => todo!(),
                 },
-                "IDAT" => {
+                b"IDAT" => {
                     let mut v: Vec<u8> = vec![0; length as usize];
                     f.read_exact(&mut v)?;
                     idat.extend(v);
                 }
-                "IEND" => {
+                b"IEND" => {
                     let mut iend_crc = [0u8; 4];
                     f.read_exact(&mut iend_crc)?;
                     if length != 0 || iend_crc != [174u8, 66, 96, 130] {
@@ -99,13 +96,9 @@ impl PngDecoder {
                 }
 
                 // Ancillary
-                "pHYs" => {
-                    ancillary_chunks.pHYs = Some(pHYs::parse(length, &mut f)?);
-                }
-                "tEXt" => {
-                    ancillary_chunks.tEXt.push(tEXt::parse(length, &mut f)?);
-                }
-                "iTXt" => {
+                b"pHYs" => ancillary_chunks.pHYs = Some(pHYs::parse(length, &mut f)?),
+                b"tEXt" => ancillary_chunks.tEXt.push(tEXt::parse(length, &mut f)?),
+                b"iTXt" => {
                     let mut keyword_buffer: Vec<u8> = Vec::new();
                     let mut compressed_buffer = [0u8];
                     let mut compression_method_buffer = [0u8];
@@ -172,7 +165,7 @@ impl PngDecoder {
                     };
                     ancillary_chunks.itxt.push(itxt);
                 }
-                "bKGD" => match ihdr.color_type {
+                b"bKGD" => match ihdr.color_type {
                     ColorType::Grayscale | ColorType::GrayscaleAlpha => {
                         let mut grayscale_buffer = [0u8; 2];
                         f.read_exact(&mut grayscale_buffer)?;
@@ -206,7 +199,7 @@ impl PngDecoder {
                         });
                     }
                 },
-                "gAMA" => {
+                b"gAMA" => {
                     if length != 4 {
                         return Err(ChunkError::InvalidgAMALength.into());
                     }
@@ -215,82 +208,9 @@ impl PngDecoder {
                     let gamma = u32::from_be_bytes(gamma_buffer);
                     ancillary_chunks.gama = Some(gAMA { gamma });
                 }
-                "cHRM" => {
-                    let (
-                        mut white_point_x_buffer,
-                        mut white_point_y_buffer,
-                        mut red_x_buffer,
-                        mut red_y_buffer,
-                        mut green_x_buffer,
-                        mut green_y_buffer,
-                        mut blue_x_buffer,
-                        mut blue_y_buffer,
-                    ) = (
-                        [0u8; 4], [0u8; 4], [0u8; 4], [0u8; 4], [0u8; 4], [0u8; 4], [0u8; 4],
-                        [0u8; 4],
-                    );
-
-                    f.read_exact(&mut white_point_x_buffer)?;
-                    let white_point_x = u32::from_be_bytes(white_point_x_buffer);
-
-                    f.read_exact(&mut white_point_y_buffer)?;
-                    let white_point_y = u32::from_be_bytes(white_point_y_buffer);
-
-                    f.read_exact(&mut red_x_buffer)?;
-                    let red_x = u32::from_be_bytes(red_x_buffer);
-
-                    f.read_exact(&mut red_y_buffer)?;
-                    let red_y = u32::from_be_bytes(red_y_buffer);
-
-                    f.read_exact(&mut green_x_buffer)?;
-                    let green_x = u32::from_be_bytes(green_x_buffer);
-
-                    f.read_exact(&mut green_y_buffer)?;
-                    let green_y = u32::from_be_bytes(green_y_buffer);
-
-                    f.read_exact(&mut blue_x_buffer)?;
-                    let blue_x = u32::from_be_bytes(blue_x_buffer);
-
-                    f.read_exact(&mut blue_y_buffer)?;
-                    let blue_y = u32::from_be_bytes(blue_y_buffer);
-
-                    ancillary_chunks.chrm = Some(cHRM {
-                        white_point_x,
-                        white_point_y,
-                        red_x,
-                        red_y,
-                        green_x,
-                        green_y,
-                        blue_x,
-                        blue_y,
-                    });
-                }
-                "iCCP" => {
-                    let mut profile_name_buffer: Vec<u8> = Vec::new();
-                    let mut compression_method_buffer = [0];
-
-                    let profile_name_len = f.read_until(b'\0', &mut profile_name_buffer)?;
-                    f.read_exact(&mut compression_method_buffer)?;
-
-                    let remaining_length = length - (profile_name_len as u32) - 1;
-
-                    let mut compressed_profile: Vec<u8> = vec![0; remaining_length as usize];
-                    f.read_exact(&mut compressed_profile)?;
-
-                    profile_name_buffer.pop();
-                    let profile_name = if let Ok(pn) = String::from_utf8(profile_name_buffer) {
-                        pn
-                    } else {
-                        continue;
-                    };
-                    let compression_method = u8::from_be_bytes(compression_method_buffer);
-                    ancillary_chunks.iCCP = Some(iCCP {
-                        profile_name,
-                        compression_method,
-                        compressed_profile,
-                    });
-                }
-                "sBIT" => {
+                b"cHRM" => ancillary_chunks.chrm = Some(cHRM::parse(length, &mut f)?),
+                b"iCCP" => ancillary_chunks.iCCP = Some(iCCP::parse(length, &mut f)?),
+                b"sBIT" => {
                     ancillary_chunks.sBIT = match ihdr.color_type {
                         ColorType::Grayscale => {
                             let mut grayscale_buffer = [0];
@@ -365,24 +285,24 @@ impl PngDecoder {
                         }
                     }
                 }
-                "sRGB" => {
+                b"sRGB" => {
                     let mut intent_buffer = [0];
                     f.read_exact(&mut intent_buffer)?;
 
                     ancillary_chunks.sRGB = Some(sRGB::from_u8(u8::from_be_bytes(intent_buffer))?);
                 }
                 _ => {
-                    let is_critical = !get_bit_at(chunk_type_buffer[0], 5);
-                    let is_public = !get_bit_at(chunk_type_buffer[1], 5);
-                    let is_safe_to_copy = get_bit_at(chunk_type_buffer[2], 5);
+                    let is_critical = !get_bit_at(chunk_type[0], 5);
+                    let is_public = !get_bit_at(chunk_type[1], 5);
+                    let is_safe_to_copy = get_bit_at(chunk_type[2], 5);
                     if is_critical {
-                        return Err(ChunkError::UnrecognizedCriticalChunk(chunk_type.into()).into());
+                        return Err(ChunkError::UnrecognizedCriticalChunk(chunk_type).into());
                     }
                     let mut buffer: Vec<u8> = vec![0; length as usize];
                     f.read_exact(&mut buffer)?;
                     unrecognized_chunks.push(UnrecognizedChunk {
                         length,
-                        chunk_type: String::from(chunk_type),
+                        chunk_type,
                         bytes: buffer,
                         is_critical,
                         is_public,

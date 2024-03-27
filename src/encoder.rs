@@ -6,7 +6,7 @@ use crc32fast::Hasher;
 use flate2::bufread::ZlibEncoder;
 use flate2::Compression;
 
-use crate::chunks::Chunk;
+use crate::chunks::{Chunk, NamedChunk};
 use crate::common::{HEADER, IEND};
 use crate::errors::PngDecodingError;
 use crate::png::Png;
@@ -21,17 +21,29 @@ impl Png {
     pub fn write<T: Write>(&self, buffer: &mut BufWriter<T>) -> Result<(), PngDecodingError> {
         buffer.write_all(&HEADER)?;
         self.write_chunk(&self.ihdr, buffer)?;
+
+        if let Some(chrm) = &self.ancillary_chunks.chrm {
+            self.write_chunk(chrm, buffer)?;
+        }
+        if let Some(iccp) = &self.ancillary_chunks.iCCP {
+            self.write_chunk(iccp, buffer)?;
+        }
+
         self.write_data(buffer)?;
+
         buffer.write_all(&IEND)?;
         Ok(())
     }
 
-    fn write_chunk<'a, T: Write>(
+    fn write_chunk<'a, T: Write, C: NamedChunk<'a>>(
         &self,
-        chunk: &impl Chunk<'a>,
+        chunk: &C,
         buffer: &mut BufWriter<T>,
     ) -> Result<(), PngDecodingError> {
-        let serialized = chunk.serialize();
+        let mut serialized = Vec::with_capacity(4 + chunk.size_hint());
+        serialized.extend_from_slice(&C::NAME);
+        chunk.serialize(&mut serialized);
+
         let len = serialized.len() as u32 - 4;
 
         buffer.write_all(&len.to_be_bytes())?;
@@ -68,9 +80,11 @@ struct DataChunk {
     bpp: usize,
 }
 
-impl<'a> Chunk<'a> for DataChunk {
+impl<'a> NamedChunk<'a> for DataChunk {
     const NAME: [u8; 4] = *b"IDAT";
+}
 
+impl<'a> Chunk<'a> for DataChunk {
     fn parse<T: Read + std::io::prelude::BufRead>(
         _length: u32,
         _buf: &mut T,
@@ -81,12 +95,7 @@ impl<'a> Chunk<'a> for DataChunk {
         todo!()
     }
 
-    fn serialize(&self) -> Vec<u8> {
-        let mut buffer: Vec<u8> =
-            Vec::with_capacity(4 + self.raw_buffer.len() + self.height as usize + 4);
-
-        buffer.extend(b"IDAT");
-
+    fn serialize(&self, buffer: &mut Vec<u8>) {
         let chunks = self.raw_buffer.chunks_exact(self.width as usize * self.bpp);
         debug_assert_eq!(chunks.remainder(), &[]);
 
@@ -98,8 +107,13 @@ impl<'a> Chunk<'a> for DataChunk {
         }
 
         let mut compressor = ZlibEncoder::new(Cursor::new(out), Compression::fast());
-        compressor.read_to_end(&mut buffer).unwrap();
+        compressor.read_to_end(buffer).unwrap();
+    }
 
-        buffer
+    fn size_hint(&self) -> usize
+    where
+        Self: Sized,
+    {
+        self.raw_buffer.len() + self.height as usize
     }
 }
