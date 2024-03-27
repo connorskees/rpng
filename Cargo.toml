@@ -19,14 +19,11 @@ path = "src/main.rs"
 [dependencies]
 flate2 = { version = "1.0.20", features = ["zlib"], default-features = false }
 crc32fast = "1.2.1"
-serde_json = { version = "1.0.62", optional = true }
-serde = { version = "1.0.123", features = ["derive"], optional = true }
 
 [dev-dependencies]
 
 [features]
 default = []
-serialize = ["serde", "serde_json"]
 bench-open = []
 bench-pixels = []
 bench-all = ["bench-open", "bench-pixels"]

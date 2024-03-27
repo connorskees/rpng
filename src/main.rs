@@ -16,12 +16,6 @@ fn main() -> Result<(), PngDecodingError> {
 
     png.save("./foo.png")?;
 
-    #[cfg(feature = "serialize")]
-    {
-        let mut f = File::create("fogkfkg.json")?;
-        f.write_all(serde_json::to_string(&pixels.rows).unwrap().as_bytes())?;
-    }
-
     Ok(())
 }
 
@@ -70,7 +64,7 @@ fn resize_png(png: &Png) -> Png {
     let new_width = png.width() as usize / RESIZE_FACTOR as usize;
     let new_height = png.height() as usize / RESIZE_FACTOR as usize;
 
-    let mut out = vec![0; new_width as usize * new_height as usize * bpp];
+    let mut out = vec![0; new_width * new_height * bpp];
 
     for y in 0..new_height {
         for x in 0..new_width {
@@ -87,12 +81,10 @@ fn resize_png(png: &Png) -> Png {
         }
     }
 
-    let png = PngBuilder::new(new_width as u32, new_height as u32)
+    PngBuilder::new(new_width as u32, new_height as u32)
         .color_type(png.ihdr.color_type)
         .buffer(out.clone())
-        .finish();
-
-    png
+        .finish()
 }
 
 fn avg_channel(bitmap: &Bitmap, x: i32, y: i32, bpp: i32, width: i32, bpp_offset: i32) -> u8 {

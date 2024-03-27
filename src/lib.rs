@@ -2,13 +2,6 @@
 
 #![warn(missing_debug_implementations)]
 
-#[cfg(feature = "serialize")]
-use serde_json;
-#[cfg(feature = "serialize")]
-use std::fs::File;
-#[cfg(feature = "serialize")]
-use std::io::Write;
-
 pub use crate::common::*;
 pub use crate::decoder::PngDecoder;
 pub use crate::filter::*;
