@@ -51,6 +51,7 @@ pub struct Bitmap {
     pub buffer: Vec<u8>,
     pub width: u32,
     pub height: u32,
+    /// Bytes per pixel
     pub bpp: usize,
 }
 

@@ -76,9 +76,7 @@ impl Png {
             }
 
             match start {
-                0 => {
-                    // nop
-                }
+                0 => decoded_row[..raw_row.len()].copy_from_slice(&raw_row),
                 1 => filter::sub(raw_row, decoded_row, self.bpp()),
                 2 => filter::up(prev, raw_row, decoded_row),
                 3 => filter::average(prev, raw_row, decoded_row, self.bpp()),
